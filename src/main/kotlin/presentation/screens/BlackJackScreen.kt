@@ -1,8 +1,6 @@
-package ui.screens
+package presentation.screens
 
-import data.Card
-import domain.CardViewModel
-import data.Hand
+import presentation.viewmodel.CardViewModel
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -13,6 +11,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -25,9 +24,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import domain.BlackjackRules
+import data.GameState
+import domain.rules.BlackjackRules
+import domain.model.Card
+import domain.model.Hand
 import kotlinx.coroutines.delay
 import org.koin.compose.koinInject
+import presentation.theme.Fonts
+import presentation.viewmodel.BlackjackUiState
 
 @Composable
 fun MyApp(content: @Composable () -> Unit) {
@@ -37,19 +41,51 @@ fun MyApp(content: @Composable () -> Unit) {
     )
 }
 
-
 @Composable
 fun BlackjackScreen(
     viewModel: CardViewModel = koinInject()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsState()
 
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF2E7D32)),
+        contentAlignment = Alignment.Center
+    ) {
+        when (val state = uiState) {
+            is BlackjackUiState.Loading -> {
+                CircularProgressIndicator(color = Color.White)
+            }
+            is BlackjackUiState.Error -> {
+                Text(
+                    text = "Error: ${state.message}",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.h5
+                )
+            }
+            is BlackjackUiState.Success -> {
+                GameTable(
+                    gameState = state.gameState,
+                    onPlayerHit = viewModel::onPlayerHit,
+                    onPlayerStand = viewModel::onPlayerStand
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun GameTable(
+    gameState: GameState,
+    onPlayerHit: () -> Unit,
+    onPlayerStand: () -> Unit
+) {
     // Main layout
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF2E7D32)) // Green table-like background
-            .padding(16.dp), // border basically
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Dealer Section
@@ -60,12 +96,8 @@ fun BlackjackScreen(
         )
         Spacer(Modifier.height(8.dp))
 
-        CardRow(hand = uiState.dealerCards)
-        Text(
-            "Score: ${uiState.dealerCards.totalValue()}",
-            style = MaterialTheme.typography.body1,
-            color = Color.White,
-        )
+        CardRow(hand = gameState.dealerCards)
+
         Spacer(Modifier.height(16.dp))
 
         // Divider
@@ -84,13 +116,13 @@ fun BlackjackScreen(
             color = Color.White,
         )
         Spacer(Modifier.height(8.dp))
-        CardRow(hand = uiState.playerCards)
+        CardRow(hand = gameState.playerCards)
 
         Spacer(Modifier.height(16.dp))
 
         // Game Result
         Text(
-            uiState.gameResult.name,
+            gameState.gameResult.name,
             color = Color.Yellow,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.h2,
@@ -99,36 +131,33 @@ fun BlackjackScreen(
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Button(
-                onClick = {
-                    viewModel.onPlayerHit()
-                },
+                onClick = onPlayerHit,
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color.White,
                     disabledBackgroundColor = Color.LightGray,
                     contentColor = Color.Black,
                     disabledContentColor = Color.DarkGray,
                 ),
-                enabled = uiState.gameResult == BlackjackRules.GameResult.PLAYING
+                enabled = gameState.gameResult == BlackjackRules.GameResult.PLAYING
             ) {
                 Text("Hit", color = Color.Black)
             }
             Button(
-                onClick = {
-                    viewModel.onPlayerStand()
-                },
+                onClick = onPlayerStand,
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color.White,
                     disabledBackgroundColor = Color.LightGray,
                     contentColor = Color.Black,
                     disabledContentColor = Color.DarkGray,
                 ),
-                enabled = uiState.gameResult == BlackjackRules.GameResult.PLAYING
+                enabled = gameState.gameResult == BlackjackRules.GameResult.PLAYING
             ) {
                 Text("Stand", color = Color.Black)
             }
         }
     }
 }
+
 
 @Composable
 fun CardRow(hand: Hand) {

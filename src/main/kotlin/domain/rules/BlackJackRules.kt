@@ -1,6 +1,7 @@
-package domain
+package domain.rules
 
-import data.Hand
+import domain.model.Hand
+
 
 class BlackjackRules {
     fun shouldDealerDraw(dealerHand: Hand): Boolean {

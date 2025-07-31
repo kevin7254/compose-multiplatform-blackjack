@@ -4,8 +4,8 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import di.appModule
 import org.koin.core.context.GlobalContext.startKoin
-import ui.screens.BlackjackScreen
-import ui.screens.MyApp
+import presentation.screens.BlackjackScreen
+import presentation.screens.MyApp
 
 fun main() = application {
     startKoin {

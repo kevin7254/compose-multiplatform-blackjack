@@ -1,10 +1,12 @@
 package data
 
-import domain.BlackjackRules
+import domain.rules.BlackjackRules
+import domain.model.Deck
+import domain.model.Hand
 
 data class GameState(
-    val deck: Deck,
-    val playerCards: Hand,
-    val dealerCards: Hand,
+    val deck: Deck = Deck(),
+    val playerCards: Hand = Hand(),
+    val dealerCards: Hand = Hand(),
     val gameResult: BlackjackRules.GameResult = BlackjackRules.GameResult.PLAYING,
 )

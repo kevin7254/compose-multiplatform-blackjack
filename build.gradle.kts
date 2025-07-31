@@ -31,6 +31,7 @@ dependencies {
     implementation("io.insert-koin:koin-core:4.0.1-Beta1")
     implementation("io.insert-koin:koin-compose-viewmodel-navigation:4.0.1-Beta1")
     implementation("io.insert-koin:koin-compose-viewmodel:4.0.1-Beta1")
+    implementation("javax.inject:javax.inject:1")
 }
 
 compose.desktop {
@@ -53,4 +54,11 @@ compose.resources {
         sourceSetName = "main",
         directoryProvider = provider { layout.projectDirectory.dir("src/main/composeResources") }
     )
+}
+kotlin {
+    sourceSets {
+        all {
+            languageSettings.enableLanguageFeature("PropertyParamAnnotationDefaultTargetMode")
+        }
+    }
 }

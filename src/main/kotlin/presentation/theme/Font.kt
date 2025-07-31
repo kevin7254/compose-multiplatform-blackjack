@@ -1,4 +1,4 @@
-package ui.screens
+package presentation.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.runtime.Composable

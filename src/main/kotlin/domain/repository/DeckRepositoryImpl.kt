@@ -1,4 +1,6 @@
-package data
+package domain.repository
+
+import domain.model.Deck
 
 class DeckRepositoryImpl : DeckRepository {
     override fun createStandardDeck(shuffle: Boolean): Deck {
