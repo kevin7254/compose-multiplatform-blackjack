@@ -3,91 +3,62 @@ package presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import di.DefaultDispatcher
-import domain.rules.BlackjackRules
+import domain.controller.GameController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import domain.usecase.GameUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transformLatest
 
 class CardViewModel(
-    private val gameUseCase: GameUseCase,
-    @DefaultDispatcher
-    private val dispatcher: CoroutineDispatcher,
+    private val gameController: GameController,
+    @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val actionStateFlow = MutableSharedFlow<Action>()
-
     @OptIn(ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<BlackjackUiState> = actionStateFlow
-        .onStart { emit(Action.Reset) }
-        .transformLatest { action ->
-            // TODO: Nasty.
-            val currentState = (uiState.value as? BlackjackUiState.Success)?.gameState
-
-            when (action) {
-                Action.Reset -> {
-                    emit(BlackjackUiState.Loading)
-                    gameUseCase.newGame()
-                        .catch { emit(BlackjackUiState.Error("Failed to start a new game.")) }
-                        .collect { gameState -> emit(BlackjackUiState.Success(gameState)) }
-                }
-                is Action.Hit -> {
-                    if (currentState != null) {
-                        val newState = gameUseCase.playerHit(currentState)
-                        emit(BlackjackUiState.Success(newState))
-                    }
-                }
-                is Action.Stand -> {
-                    if (currentState != null) {
-                        val newState = gameUseCase.playerStand(currentState)
-                        emit(BlackjackUiState.Success(newState))
-                    }
-                }
-            }
+    val uiState: StateFlow<BlackjackUiState> = combine(
+        gameController.gameState,
+        gameController.isLoading,
+        gameController.error,
+    ) { gameState, isLoading, error ->
+        when {
+            error != null -> BlackjackUiState.Error(error)
+            isLoading -> BlackjackUiState.Loading
+            gameState != null -> BlackjackUiState.Success(gameState)
+            else -> BlackjackUiState.Loading
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = BlackjackUiState.Loading,
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = BlackjackUiState.Loading,
+    )
+
+    init {
+        onGameReset()
+    }
 
 
     fun onPlayerHit() {
-        // TODO: Nasty.
-        if ((uiState.value as? BlackjackUiState.Success)?.gameState?.gameResult == BlackjackRules.GameResult.PLAYING) {
-            viewModelScope.launch(dispatcher) {
-                actionStateFlow.emit(Action.Hit)
-            }
+        viewModelScope.launch(dispatcher) {
+            gameController.playerHit()
         }
     }
 
     fun onPlayerStand() {
-        // TODO: Nasty.
-        if ((uiState.value as? BlackjackUiState.Success)?.gameState?.gameResult == BlackjackRules.GameResult.PLAYING) {
-            viewModelScope.launch(dispatcher) {
-                actionStateFlow.emit(Action.Stand)
-            }
+        viewModelScope.launch(dispatcher) {
+            gameController.playerStand()
         }
     }
-
 
     fun onGameReset() {
         viewModelScope.launch(dispatcher) {
-            actionStateFlow.emit(Action.Reset)
+            gameController.startNewGame()
         }
     }
 
-    private sealed interface Action {
-        object Hit : Action
-        object Stand : Action
-        object Reset : Action
+    fun onErrorDismissed() {
+        gameController.clearError()
     }
-
 }

@@ -28,6 +28,7 @@ import data.GameState
 import domain.rules.BlackjackRules
 import domain.model.Card
 import domain.model.Hand
+import domain.model.toDisplay
 import kotlinx.coroutines.delay
 import org.koin.compose.koinInject
 import presentation.theme.Fonts
@@ -68,7 +69,8 @@ fun BlackjackScreen(
                 GameTable(
                     gameState = state.gameState,
                     onPlayerHit = viewModel::onPlayerHit,
-                    onPlayerStand = viewModel::onPlayerStand
+                    onPlayerStand = viewModel::onPlayerStand,
+                    onNewGame = viewModel::onGameReset,
                 )
             }
         }
@@ -79,8 +81,11 @@ fun BlackjackScreen(
 fun GameTable(
     gameState: GameState,
     onPlayerHit: () -> Unit,
-    onPlayerStand: () -> Unit
+    onPlayerStand: () -> Unit,
+    onNewGame: () -> Unit,
 ) {
+    val gameResultDisplay = gameState.gameResult.toDisplay()
+
     // Main layout
     Column(
         modifier = Modifier
@@ -120,43 +125,81 @@ fun GameTable(
 
         Spacer(Modifier.height(16.dp))
 
-        // Game Result
-        Text(
-            gameState.gameResult.name,
-            color = Color.Yellow,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.h2,
-        )
+        // Game Result with better styling
+        AnimatedVisibility(
+            visible = gameResultDisplay.isGameOver,
+            enter = fadeIn() + scaleIn(),
+            exit = fadeOut() + scaleOut()
+        ) {
+            androidx.compose.material.Card(
+                modifier = Modifier.padding(8.dp),
+                backgroundColor = Color.Black,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = gameResultDisplay.message,
+                    color = gameResultDisplay.color,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.h2,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+
+        if (!gameResultDisplay.isGameOver) {
+            Text(
+                gameResultDisplay.message,
+                color = gameResultDisplay.color,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.h5,
+            )
+        }
+
         Spacer(Modifier.height(16.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        // Action Buttons
+        if (gameResultDisplay.isGameOver) {
+            // Show New Game button when game is over
             Button(
-                onClick = onPlayerHit,
+                onClick = onNewGame,
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.White,
-                    disabledBackgroundColor = Color.LightGray,
-                    contentColor = Color.Black,
-                    disabledContentColor = Color.DarkGray,
+                    backgroundColor = Color(0xFF4CAF50), // Green
+                    contentColor = Color.White
                 ),
-                enabled = gameState.gameResult == BlackjackRules.GameResult.PLAYING
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .height(50.dp)
             ) {
-                Text("Hit", color = Color.Black)
+                Text("New Game", style = MaterialTheme.typography.button)
             }
-            Button(
-                onClick = onPlayerStand,
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.White,
-                    disabledBackgroundColor = Color.LightGray,
-                    contentColor = Color.Black,
-                    disabledContentColor = Color.DarkGray,
-                ),
-                enabled = gameState.gameResult == BlackjackRules.GameResult.PLAYING
-            ) {
-                Text("Stand", color = Color.Black)
+        } else {
+            // Show Hit/Stand buttons when game is active
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Button(
+                    onClick = onPlayerHit,
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.White,
+                        contentColor = Color.Black,
+                    ),
+                    modifier = Modifier.height(50.dp)
+                ) {
+                    Text("Hit", style = MaterialTheme.typography.button)
+                }
+                Button(
+                    onClick = onPlayerStand,
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.White,
+                        contentColor = Color.Black,
+                    ),
+                    modifier = Modifier.height(50.dp)
+                ) {
+                    Text("Stand", style = MaterialTheme.typography.button)
+                }
             }
         }
     }
 }
+
 
 
 @Composable

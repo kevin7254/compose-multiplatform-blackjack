@@ -1,5 +1,7 @@
 package di
 
+import domain.controller.GameAnimationController
+import domain.controller.GameController
 import domain.rules.BlackjackRules
 import domain.repository.DeckRepository
 import domain.repository.DeckRepositoryImpl
@@ -13,9 +15,6 @@ import org.koin.core.qualifier.qualifier
 import org.koin.dsl.module
 import presentation.viewmodel.CardViewModel
 
-// fun nativeConfig() : KoinAppDeclaration
-
-
 val appModule = module {
 
     // Domain Use-Cases
@@ -24,10 +23,11 @@ val appModule = module {
     single { FlipCardUseCase() }
     single { DealerTurnUseCase(dealCardUseCase = get(), blackjackRules = get()) }
     single { GameUseCase(deckRepository = get(), blackjackRules = get()) }
+    single { GameAnimationController(get()) }
+    single { GameController(get(), get()) }
 
     single<CoroutineDispatcher>(qualifier<DefaultDispatcher>()) { Dispatchers.Default }
     single<CoroutineDispatcher>(qualifier<IODispatcher>()) { Dispatchers.IO }
-
 
     // Repository
     single<DeckRepository> { DeckRepositoryImpl() }
@@ -35,8 +35,8 @@ val appModule = module {
     // ViewModel
     single {
         CardViewModel(
-            gameUseCase = get(),
-            dispatcher  = get(qualifier<DefaultDispatcher>()),
-            )
+            gameController = get(),
+            dispatcher = get(qualifier<DefaultDispatcher>()),
+        )
     }
 }
