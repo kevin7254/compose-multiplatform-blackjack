@@ -1,20 +1,9 @@
 package presentation.viewmodel
 
-import data.GameState
+import domain.model.GameState
 
 sealed interface BlackjackUiState {
-    /**
-     * The game is currently being set up or reset.
-     */
-    data object Loading : BlackjackUiState
-
-    /**
-     * The game has loaded and is ready to be played or has finished.
-     */
-    data class Success(val gameState: GameState) : BlackjackUiState
-
-    /**
-     * An error occurred during game setup or play.
-     */
+    object Loading : BlackjackUiState
+    data class Success(val gameState: GameState, val isAnimating: Boolean = false) : BlackjackUiState
     data class Error(val message: String) : BlackjackUiState
 }

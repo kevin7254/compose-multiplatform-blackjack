@@ -1,6 +1,8 @@
 package domain.model
 
+import androidx.compose.runtime.Immutable
 
+@Immutable
 data class Hand(
     val cards: List<Card> = emptyList()
 ) : Comparable<Hand> {

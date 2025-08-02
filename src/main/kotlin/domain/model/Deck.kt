@@ -1,5 +1,8 @@
 package domain.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class Deck(
     val cards: List<Card> = emptyList(),
     val numberOfDecks: Int = 1,

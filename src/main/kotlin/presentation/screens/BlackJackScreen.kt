@@ -1,6 +1,6 @@
 package presentation.screens
 
-import presentation.viewmodel.CardViewModel
+import presentation.viewmodel.BlackjackViewModel
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -24,7 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import data.GameState
+import domain.model.GameState
 import domain.rules.BlackjackRules
 import domain.model.Card
 import domain.model.Hand
@@ -44,7 +44,7 @@ fun MyApp(content: @Composable () -> Unit) {
 
 @Composable
 fun BlackjackScreen(
-    viewModel: CardViewModel = koinInject()
+    viewModel: BlackjackViewModel = koinInject()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

@@ -1,7 +1,8 @@
 package domain.controller
 
-import data.GameState
-import domain.rules.BlackjackRules
+import domain.model.GameResult
+import domain.model.GameState
+import domain.usecase.GameAnimationUseCase
 import domain.usecase.GameUseCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,8 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class GameController(
     private val gameUseCase: GameUseCase,
-    private val gameAnimationController: GameAnimationController,
-    ) {
+    private val gameAnimationUseCase: GameAnimationUseCase,
+) {
     private val _gameState = MutableStateFlow<GameState?>(null)
     val gameState: StateFlow<GameState?> = _gameState.asStateFlow()
 
@@ -33,7 +34,7 @@ class GameController(
             _error.value = null
 
             // Collect with delay for initial card dealing
-            gameAnimationController.newGameWithAnimation()
+            gameAnimationUseCase.newGameWithAnimation()
                 .collect { gameState ->
                     _gameState.value = gameState
                 }
@@ -57,12 +58,12 @@ class GameController(
 
     suspend fun playerStand(): Result<Unit> {
         val currentState = _gameState.value
-        return if (currentState != null && currentState.gameResult == BlackjackRules.GameResult.PLAYING) {
+        return if (currentState != null && currentState.gameResult == GameResult.PLAYING) {
             try {
                 _isAnimating.value = true
 
-                // Use animation controller for dealer's turn
-                gameAnimationController.playerStandWithAnimation(currentState)
+                // Use animation use case for dealer's turn
+                gameAnimationUseCase.playerStandWithAnimation(currentState)
                     .collect { gameState ->
                         _gameState.value = gameState
                     }
@@ -82,7 +83,7 @@ class GameController(
 
 
     fun isGameOver(): Boolean {
-        return _gameState.value?.gameResult?.let { it != BlackjackRules.GameResult.PLAYING } ?: false
+        return _gameState.value?.gameResult?.let { it != GameResult.PLAYING } ?: false
     }
 
 
@@ -90,7 +91,7 @@ class GameController(
         action: (GameState) -> GameState
     ): Result<Unit> {
         val currentState = _gameState.value
-        return if (currentState != null && currentState.gameResult == BlackjackRules.GameResult.PLAYING) {
+        return if (currentState != null && currentState.gameResult == GameResult.PLAYING) {
             try {
                 _isAnimating.value = true
 
