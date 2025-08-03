@@ -17,8 +17,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.flow.onStart
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -100,15 +104,15 @@ class BlackjackViewModel(
         gameFlowJob?.cancel()
 
         gameFlowJob = viewModelScope.launch(dispatcher) {
-
             flowProvider()
-                .transformLatest { gs ->
-                    emit(gs to waitingRec)
-                    // Once we are done dealing cards, start/refresh the simulation
+                .distinctUntilChanged()
+                .flatMapLatest { gs ->
                     if (gs.doneDealingCards()) {
-                        gs.recommendationFlow().collect { rec ->
-                            emit(gs to rec)
-                        }
+                        gs.recommendationFlow()
+                            .map { rec -> gs to rec }
+                            .onStart { emit(gs to waitingRec) } // emit initial waitingRec before rec
+                    } else {
+                        flowOf(gs to waitingRec)
                     }
                 }
                 .catch { e ->
@@ -133,12 +137,15 @@ class BlackjackViewModel(
     }
 
     private val waitingRec = StrategyRecommendation(
-        action = StrategyAction.HIT,
+        action = StrategyAction.WAITING,
         reason = "Waiting for dealer card…",
     )
 
 
-    private fun GameState.doneDealingCards() = dealerCards.cards.size == 2 && playerCards.cards.size == 2
+    private fun GameState.doneDealingCards() =
+        dealerCards.cards.size == 2 &&
+                playerCards.cards.size >= 2 &&
+                dealerCards.cards.count { it.isFaceUp } == 1
 
     private fun GameState.recommendationFlow(): Flow<StrategyRecommendation> =
         optimalStrategyUseCase(

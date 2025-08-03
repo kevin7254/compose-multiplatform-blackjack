@@ -15,6 +15,7 @@ enum class StrategyAction {
     HIT,
     STAND,
     IMPOSSIBLE,
+    WAITING,
 }
 
 data class StrategyRecommendation(
@@ -157,7 +158,7 @@ class OptimalStrategyUseCase(
         return when {
             total > 21 -> StrategyRecommendation(StrategyAction.IMPOSSIBLE, "Already busted")
             total == 21 -> StrategyRecommendation(StrategyAction.STAND, "You have 21")
-            else -> StrategyRecommendation(StrategyAction.HIT, "Simulation running…")
+            else -> StrategyRecommendation(StrategyAction.WAITING, "Simulation running…")
         }
     }
 

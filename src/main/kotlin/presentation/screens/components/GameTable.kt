@@ -98,7 +98,7 @@ private fun TopHalf(
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
         if (DEBUG && !isGameOver) {
             StrategyRecommendationTopCard(strategyRecommendation = strategyRecommendation)
@@ -121,6 +121,7 @@ private fun BottomHalf(
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
         PlayerSection(gameState = gameState)
         GameResultSection(gameResultDisplay = gameResultDisplay)
@@ -148,6 +149,7 @@ private fun StrategyRecommendationTopCard(
             StrategyAction.HIT -> Color(0xFF4CAF50) // Green
             StrategyAction.STAND -> ACCENT_COLOR
             StrategyAction.IMPOSSIBLE -> Color(0xFFFF5722) // Red
+            StrategyAction.WAITING -> Color(0xFF795548)
         },
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -226,16 +228,6 @@ private fun GameResultSection(
             )
         }
     }
-
-    if (!gameResultDisplay.isGameOver) {
-        Text(
-            gameResultDisplay.message,
-            color = gameResultDisplay.color,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.h5,
-        )
-    }
-
     Spacer(Modifier.height(PADDING))
 }
 

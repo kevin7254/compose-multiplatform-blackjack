@@ -53,7 +53,8 @@ fun CardRow(hand: Hand) {
         style = MaterialTheme.typography.body1,
         color = Color.White,
     )
-    if (DEBUG) {
+    val isDealerSecondCard = hand.cards.lastOrNull()?.isFaceUp?.not()
+    if (DEBUG && isDealerSecondCard == true) {
         Text(
             text = "Face-down card: ${hand.cards.lastOrNull()}",
             style = MaterialTheme.typography.body1,

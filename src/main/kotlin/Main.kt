@@ -15,7 +15,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "BlackJack Game",
-        state = rememberWindowState(width = 1200.dp, height = 800.dp),
+        state = rememberWindowState(width = 1200.dp, height = 1000.dp),
     ) {
         MyApp {
             BlackjackScreen()

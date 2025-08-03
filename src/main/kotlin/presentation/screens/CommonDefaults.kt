@@ -1,5 +1,5 @@
 package presentation.screens
 
 object CommonDefaults {
-    const val DEBUG = false
+    const val DEBUG = true
 }
