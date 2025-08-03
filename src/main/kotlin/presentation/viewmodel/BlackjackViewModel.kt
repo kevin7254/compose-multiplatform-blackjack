@@ -5,7 +5,11 @@ import androidx.lifecycle.viewModelScope
 import di.DefaultDispatcher
 import domain.model.GameState
 import domain.usecase.GameAnimationUseCase
+import domain.usecase.OptimalStrategyUseCase
+import domain.usecase.StrategyAction
+import domain.usecase.StrategyRecommendation
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
@@ -13,8 +17,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.transformLatest
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -23,6 +27,7 @@ import kotlin.coroutines.cancellation.CancellationException
  */
 class BlackjackViewModel(
     private val gameAnimationUseCase: GameAnimationUseCase,
+    private val optimalStrategyUseCase: OptimalStrategyUseCase,
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -90,28 +95,59 @@ class BlackjackViewModel(
      *
      * @param flowProvider A lambda that creates the [Flow<GameState>] to be executed.
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun executeFlow(flowProvider: () -> Flow<GameState>) {
-        // Cancel any job that is currently running.
         gameFlowJob?.cancel()
 
         gameFlowJob = viewModelScope.launch(dispatcher) {
+
             flowProvider()
+                .transformLatest { gs ->
+                    emit(gs to waitingRec)
+                    // Once we are done dealing cards, start/refresh the simulation
+                    if (gs.doneDealingCards()) {
+                        gs.recommendationFlow().collect { rec ->
+                            emit(gs to rec)
+                        }
+                    }
+                }
                 .catch { e ->
                     if (e !is CancellationException) {
-                        _uiState.value = BlackjackUiState.Error("An error occurred: ${e.message}")
+                        e.printStackTrace()
+                        _uiState.value =
+                            BlackjackUiState.Error("An error occurred: ${e.message}")
                     }
                 }
                 .onCompletion {
-                    val finalState = _uiState.value
-                    if (finalState is BlackjackUiState.Success) {
-                        _uiState.value = finalState.copy(isAnimating = false)
-                    }
+                    (_uiState.value as? BlackjackUiState.Success)
+                        ?.let { _uiState.value = it.copy(isAnimating = false) }
                 }
-                .collect { newGameState ->
-                    _uiState.value = BlackjackUiState.Success(newGameState, isAnimating = true)
+                .collect { (state, rec) ->
+                    _uiState.value = BlackjackUiState.Success(
+                        gameState = state,
+                        recommendation = rec,
+                        isAnimating = true,
+                    )
                 }
         }
     }
+
+    private val waitingRec = StrategyRecommendation(
+        action = StrategyAction.HIT,
+        reason = "Waiting for dealer card…",
+    )
+
+
+    private fun GameState.doneDealingCards() = dealerCards.cards.size == 2 && playerCards.cards.size == 2
+
+    private fun GameState.recommendationFlow(): Flow<StrategyRecommendation> =
+        optimalStrategyUseCase(
+            playerHand = playerCards,
+            dealerUpCard = dealerCards.cards.first(),
+            //TODO: Improve
+            currentDeck = deck,
+        )
+
 
     fun onErrorDismissed() {
         onGameReset()

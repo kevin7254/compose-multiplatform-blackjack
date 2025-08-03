@@ -70,9 +70,9 @@ data class Hand(
         val allTotals = possibleValues()
         val validTotals = allTotals.filter { it <= 21 }
         return if (validTotals.isNotEmpty()) {
-            validTotals.maxOrNull()!! // The best valid total. TODO no double bang..
+            validTotals.max() // The best valid total.
         } else {
-            allTotals.minOrNull()!!   // If everything is over 21, pick the smallest bust
+            allTotals.min()   // If everything is over 21, pick the smallest bust
         }
     }
 

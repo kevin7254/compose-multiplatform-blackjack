@@ -9,6 +9,7 @@ import domain.usecase.DealerTurnUseCase
 import domain.usecase.FlipCardUseCase
 import domain.usecase.GameAnimationUseCase
 import domain.usecase.GameUseCase
+import domain.usecase.OptimalStrategyUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.qualifier.qualifier
@@ -25,6 +26,7 @@ val appModule = module {
     single { GameUseCase(deckRepository = get(), blackjackRules = get()) }
     single { GameAnimationUseCase(gameUseCase = get()) }
     single { GameController(gameUseCase = get(), gameAnimationUseCase = get()) }
+    single { OptimalStrategyUseCase(dispatcher = get(qualifier<DefaultDispatcher>())) }
 
     single<CoroutineDispatcher>(qualifier<DefaultDispatcher>()) { Dispatchers.Default }
     single<CoroutineDispatcher>(qualifier<IODispatcher>()) { Dispatchers.IO }
@@ -36,6 +38,7 @@ val appModule = module {
     single {
         BlackjackViewModel(
             gameAnimationUseCase = get(),
+            optimalStrategyUseCase = get(),
             dispatcher = get(qualifier<DefaultDispatcher>()),
         )
     }

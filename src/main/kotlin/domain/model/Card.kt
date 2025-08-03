@@ -27,7 +27,7 @@ data class Card(
     }
 
     fun toInt(): Int {
-        return "${rank.value}${suit.ordinal}".toInt()
+        return "${suit.ordinal}${rank.displayValue}".toInt()
     }
 
 

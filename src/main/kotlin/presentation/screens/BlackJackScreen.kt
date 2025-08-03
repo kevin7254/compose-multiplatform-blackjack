@@ -5,6 +5,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -21,14 +22,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import domain.model.GameState
-import domain.rules.BlackjackRules
 import domain.model.Card
 import domain.model.Hand
 import domain.model.toDisplay
+import domain.usecase.StrategyAction
+import domain.usecase.StrategyRecommendation
 import kotlinx.coroutines.delay
 import org.koin.compose.koinInject
 import presentation.theme.Fonts
@@ -58,6 +61,7 @@ fun BlackjackScreen(
             is BlackjackUiState.Loading -> {
                 CircularProgressIndicator(color = Color.White)
             }
+
             is BlackjackUiState.Error -> {
                 Text(
                     text = "Error: ${state.message}",
@@ -65,9 +69,11 @@ fun BlackjackScreen(
                     style = MaterialTheme.typography.h5
                 )
             }
+
             is BlackjackUiState.Success -> {
                 GameTable(
                     gameState = state.gameState,
+                    strategyRecommendation = state.recommendation,
                     onPlayerHit = viewModel::onPlayerHit,
                     onPlayerStand = viewModel::onPlayerStand,
                     onNewGame = viewModel::onGameReset,
@@ -80,6 +86,7 @@ fun BlackjackScreen(
 @Composable
 fun GameTable(
     gameState: GameState,
+    strategyRecommendation: StrategyRecommendation,
     onPlayerHit: () -> Unit,
     onPlayerStand: () -> Unit,
     onNewGame: () -> Unit,
@@ -93,6 +100,44 @@ fun GameTable(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        if (DEBUG && !gameResultDisplay.isGameOver) {
+            androidx.compose.material.Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                backgroundColor = when (strategyRecommendation.action) {
+                    StrategyAction.HIT -> Color(0xFF4CAF50) // Green
+                    StrategyAction.STAND -> Color(0xFF2196F3) // Blue
+                    StrategyAction.IMPOSSIBLE -> Color(0xFFFF5722) // Red
+                },
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "🎯 OPTIMAL STRATEGY",
+                        color = Color.White,
+                        style = MaterialTheme.typography.subtitle2,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = strategyRecommendation.action.name,
+                        color = Color.White,
+                        style = MaterialTheme.typography.h6,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = strategyRecommendation.reason,
+                        color = Color.White,
+                        style = MaterialTheme.typography.caption,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+
         // Dealer Section
         Text(
             "Dealer",
@@ -173,33 +218,75 @@ fun GameTable(
                 Text("New Game", style = MaterialTheme.typography.button)
             }
         } else {
-            // Show Hit/Stand buttons when game is active
+            // Show Hit/Stand buttons when game is active with strategy highlighting
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                val hitModifier = if (DEBUG && strategyRecommendation?.action == StrategyAction.HIT) {
+                    Modifier
+                        .height(50.dp)
+                        .border(3.dp, Color(0xFF4CAF50), RoundedCornerShape(4.dp))
+                } else {
+                    Modifier.height(50.dp)
+                }
+
+                val standModifier = if (DEBUG && strategyRecommendation?.action == StrategyAction.STAND) {
+                    Modifier
+                        .height(50.dp)
+                        .border(3.dp, Color(0xFF2196F3), RoundedCornerShape(4.dp))
+                } else {
+                    Modifier.height(50.dp)
+                }
+
                 Button(
                     onClick = onPlayerHit,
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.White,
-                        contentColor = Color.Black,
+                        backgroundColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
+                            Color(0xFF4CAF50) else Color.White,
+                        contentColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
+                            Color.White else Color.Black,
                     ),
-                    modifier = Modifier.height(50.dp)
+                    modifier = hitModifier
                 ) {
                     Text("Hit", style = MaterialTheme.typography.button)
                 }
                 Button(
                     onClick = onPlayerStand,
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.White,
-                        contentColor = Color.Black,
+                        backgroundColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
+                            Color(0xFF2196F3) else Color.White,
+                        contentColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
+                            Color.White else Color.Black,
                     ),
-                    modifier = Modifier.height(50.dp)
+                    modifier = standModifier
                 ) {
                     Text("Stand", style = MaterialTheme.typography.button)
                 }
             }
         }
+
+        if (DEBUG) {
+            LazyRow(
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                itemsIndexed(
+                    items = gameState.deck.cards,
+                    key = { index, card -> "${card.toInt()}_$index" } //index to be unique across sessions
+                ) { index, card ->
+                    Text(
+                        text = "$index: $card",
+                        color = Color.White,
+                        fontSize = MaterialTheme.typography.caption.fontSize,
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
     }
 }
-
 
 
 @Composable
@@ -224,8 +311,14 @@ fun CardRow(hand: Hand) {
         style = MaterialTheme.typography.body1,
         color = Color.White,
     )
-
     displayedScore = hand.totalValue()
+    if (DEBUG) {
+        Text(
+            text = "Face-down card: ${hand.cards.lastOrNull()}",
+            style = MaterialTheme.typography.body1,
+            color = Color.White,
+        )
+    }
 }
 
 /**
@@ -286,3 +379,5 @@ fun CardImage(
 }
 
 private const val ANIMATION_DURATION = 700
+
+private const val DEBUG = false
