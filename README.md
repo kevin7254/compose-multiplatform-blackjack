@@ -12,7 +12,7 @@ ___
 
 ## Planned features:
 ### 0.2.0:
-- Restart without quitting app
+- Restart without quitting app - DONE
 - Betting
 
 ### 0.3.0:
