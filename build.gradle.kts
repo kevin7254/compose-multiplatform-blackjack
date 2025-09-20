@@ -23,14 +23,14 @@ dependencies {
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
     implementation(compose.components.resources)
-    implementation("io.coil-kt.coil3:coil-compose:3.0.4")
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.4")
-    implementation("io.coil-kt.coil3:coil-svg:3.0.4")
-    implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.10.1")
-    implementation("io.insert-koin:koin-core:4.0.1-Beta1")
-    implementation("io.insert-koin:koin-compose-viewmodel-navigation:4.0.1-Beta1")
-    implementation("io.insert-koin:koin-compose-viewmodel:4.0.1-Beta1")
+    implementation("io.coil-kt.coil3:coil-compose:3.3.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
+    implementation("io.coil-kt.coil3:coil-svg:3.3.0")
+    implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.10.2")
+    implementation("io.insert-koin:koin-core:4.1.1")
+    implementation("io.insert-koin:koin-compose-viewmodel-navigation:4.1.1")
+    implementation("io.insert-koin:koin-compose-viewmodel:4.1.1")
     implementation("javax.inject:javax.inject:1")
 }
 
