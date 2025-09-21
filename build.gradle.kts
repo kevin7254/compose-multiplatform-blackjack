@@ -1,4 +1,4 @@
-version = "0.2.0"
+version = "1.0.0"
 
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times

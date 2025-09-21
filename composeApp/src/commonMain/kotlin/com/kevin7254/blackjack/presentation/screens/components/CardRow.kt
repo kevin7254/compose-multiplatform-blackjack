@@ -50,14 +50,14 @@ fun CardRow(hand: Hand) {
     Spacer(modifier = Modifier.height(DIVIDER_HEIGHT))
     Text(
         text = "Score: ${hand.totalValue()}",
-        style = MaterialTheme.typography.bodySmall,
+        style = MaterialTheme.typography.bodyMedium,
         color = Color.White,
     )
     val isDealerSecondCard = hand.cards.lastOrNull()?.isFaceUp?.not()
     if (DEBUG && isDealerSecondCard == true) {
         Text(
             text = "Face-down card: ${hand.cards.lastOrNull()}",
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             color = Color.White,
         )
     }

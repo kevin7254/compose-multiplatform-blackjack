@@ -35,19 +35,19 @@ bin/
 ### VS Code ###
 .vscode/
 
-### Mac OS ###
+# Mac OS
 .DS_Store
 captures
 .externalNativeBuild
 .cxx
+node_modules/
+
+# Xcode bundles
+*.xcodeproj/
 *.xcodeproj/*
-!*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
-!*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
-!*.xcodeproj/project.xcworkspace/xcshareddata/
+*.xcworkspace/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
-node_modules/
 
 ### KMP ###
 kotlin-js-store/

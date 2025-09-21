@@ -25,6 +25,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -69,13 +70,12 @@ fun GameTable(
             modifier = Modifier.weight(1f).fillMaxWidth()
         )
 
-        //TODO: Deprecated
-        Divider(
-            color = Color.White,
-            thickness = 1.dp,
+        HorizontalDivider(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp)
+                .padding(vertical = 16.dp),
+            thickness = 1.dp,
+            color = Color.White,
         )
 
         BottomHalf(
@@ -191,7 +191,7 @@ private fun DealerSection(
     // Dealer Section
     Text(
         "Dealer",
-        style = MaterialTheme.typography.bodyLarge,
+        style = MaterialTheme.typography.titleLarge,
         color = Color.White,
     )
     Spacer(Modifier.height(8.dp))
@@ -204,7 +204,7 @@ private fun PlayerSection(
 ) {
     Text(
         "Player",
-        style = MaterialTheme.typography.bodyLarge,
+        style = MaterialTheme.typography.titleLarge,
         color = Color.White,
     )
     CardRow(hand = gameState.playerCards)
@@ -228,7 +228,7 @@ private fun GameResultSection(
                 text = gameResultDisplay.message,
                 color = gameResultDisplay.color,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(PADDING)
             )
         }
@@ -258,7 +258,7 @@ private fun PlayerButtons(
                 .fillMaxWidth(0.5f)
                 .height(50.dp)
         ) {
-            Text("New Game", style = MaterialTheme.typography.displayMedium)
+            Text("New Game", style = MaterialTheme.typography.titleLarge)
         }
     } else {
         // Show Hit/Stand buttons when the game is active with strategy highlighting
@@ -281,9 +281,10 @@ private fun PlayerButtons(
 
             Button(
                 onClick = onPlayerHit,
+                shape = RoundedCornerShape(0.dp), //TODO: Should be through theme
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
-                        Color(0xFF4CAF50) else Color.White,
+                        Color(0xFF4CAF50) else Color(0xFFC7C7C7),
                     contentColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
                         Color.White else Color.Black,
                 ),
@@ -293,9 +294,10 @@ private fun PlayerButtons(
             }
             Button(
                 onClick = onPlayerStand,
+                shape = RoundedCornerShape(0.dp), //TODO: Should be through theme
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
-                        ACCENT_COLOR else Color.White,
+                        ACCENT_COLOR else Color(0xFFC7C7C7),
                     contentColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
                         Color.White else Color.Black,
                 ),

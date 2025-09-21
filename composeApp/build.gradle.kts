@@ -126,7 +126,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.kevin7254.blackjack"
-            packageVersion = "0.2.0"
+            packageVersion = "1.0.0"
         }
     }
 }

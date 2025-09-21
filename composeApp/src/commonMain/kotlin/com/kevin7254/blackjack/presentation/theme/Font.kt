@@ -21,14 +21,14 @@ object Fonts {
         bodyLarge = TextStyle(
             fontFamily = jetbrainsMono(),
             fontWeight = FontWeight.Normal,
-            fontSize = 16.sp,
+            fontSize = 22.sp,
             lineHeight = 24.sp,
             letterSpacing = 0.5.sp
         ),
         titleLarge = TextStyle(
             fontFamily = jetbrainsMono(),
             fontWeight = FontWeight.Normal,
-            fontSize = 22.sp,
+            fontSize = 28.sp,
             lineHeight = 28.sp,
             letterSpacing = 0.sp
         ),
