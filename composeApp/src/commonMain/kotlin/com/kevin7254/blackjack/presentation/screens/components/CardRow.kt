@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.kevin7254.blackjack.domain.model.Hand
 import kotlinx.coroutines.delay
-import com.kevin7254.blackjack.presentation.screens.CommonDefaults.DEBUG
+import com.kevin7254.blackjack.presentation.screens.CommonDefaults.LOCAL_DEBUG
 import com.kevin7254.blackjack.presentation.screens.components.CardRowDefaults.ANIMATION_DURATION_MS
 import com.kevin7254.blackjack.presentation.screens.components.CardRowDefaults.DIVIDER_HEIGHT
 
@@ -54,7 +54,7 @@ fun CardRow(hand: Hand) {
         color = Color.White,
     )
     val isDealerSecondCard = hand.cards.lastOrNull()?.isFaceUp?.not()
-    if (DEBUG && isDealerSecondCard == true) {
+    if (LOCAL_DEBUG && isDealerSecondCard == true) {
         Text(
             text = "Face-down card: ${hand.cards.lastOrNull()}",
             style = MaterialTheme.typography.bodyMedium,

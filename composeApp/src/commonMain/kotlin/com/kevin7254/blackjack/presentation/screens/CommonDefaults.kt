@@ -1,5 +1,5 @@
 package com.kevin7254.blackjack.presentation.screens
 
-object CommonDefaults {
-    const val DEBUG = false
+internal object CommonDefaults {
+    const val LOCAL_DEBUG = false
 }

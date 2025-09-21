@@ -24,7 +24,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,7 +41,7 @@ import com.kevin7254.blackjack.domain.model.GameState
 import com.kevin7254.blackjack.domain.model.toDisplay
 import com.kevin7254.blackjack.domain.usecase.StrategyAction
 import com.kevin7254.blackjack.domain.usecase.StrategyRecommendation
-import com.kevin7254.blackjack.presentation.screens.CommonDefaults.DEBUG
+import com.kevin7254.blackjack.presentation.screens.CommonDefaults.LOCAL_DEBUG
 import com.kevin7254.blackjack.presentation.screens.components.GameTableDefaults.ACCENT_COLOR
 import com.kevin7254.blackjack.presentation.screens.components.GameTableDefaults.PADDING
 
@@ -102,7 +101,7 @@ private fun TopHalf(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        if (DEBUG && !isGameOver) {
+        if (LOCAL_DEBUG && !isGameOver) {
             StrategyRecommendationTopCard(strategyRecommendation = strategyRecommendation)
             Spacer(Modifier.height(8.dp))
         }
@@ -258,12 +257,12 @@ private fun PlayerButtons(
                 .fillMaxWidth(0.5f)
                 .height(50.dp)
         ) {
-            Text("New Game", style = MaterialTheme.typography.titleLarge)
+            Text("New Game", style = MaterialTheme.typography.titleMedium)
         }
     } else {
         // Show Hit/Stand buttons when the game is active with strategy highlighting
         Row(horizontalArrangement = Arrangement.spacedBy(PADDING)) {
-            val hitModifier = if (DEBUG && strategyRecommendation?.action == StrategyAction.HIT) {
+            val hitModifier = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.HIT) {
                 Modifier
                     .height(50.dp)
                     .border(3.dp, Color(0xFF4CAF50), RoundedCornerShape(4.dp))
@@ -271,7 +270,7 @@ private fun PlayerButtons(
                 Modifier.height(50.dp)
             }
 
-            val standModifier = if (DEBUG && strategyRecommendation?.action == StrategyAction.STAND) {
+            val standModifier = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.STAND) {
                 Modifier
                     .height(50.dp)
                     .border(3.dp, ACCENT_COLOR, RoundedCornerShape(4.dp))
@@ -283,9 +282,9 @@ private fun PlayerButtons(
                 onClick = onPlayerHit,
                 shape = RoundedCornerShape(0.dp), //TODO: Should be through theme
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
+                    containerColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
                         Color(0xFF4CAF50) else Color(0xFFC7C7C7),
-                    contentColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
+                    contentColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
                         Color.White else Color.Black,
                 ),
                 modifier = hitModifier
@@ -296,9 +295,9 @@ private fun PlayerButtons(
                 onClick = onPlayerStand,
                 shape = RoundedCornerShape(0.dp), //TODO: Should be through theme
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
+                    containerColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
                         ACCENT_COLOR else Color(0xFFC7C7C7),
-                    contentColor = if (DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
+                    contentColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
                         Color.White else Color.Black,
                 ),
                 modifier = standModifier
@@ -308,7 +307,7 @@ private fun PlayerButtons(
         }
     }
 
-    if (DEBUG) {
+    if (LOCAL_DEBUG) {
         LazyRow(
             modifier = Modifier
                 .padding(top = PADDING)
