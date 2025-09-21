@@ -3,6 +3,9 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+local.properties
+architecture_recommendations.md
+architecture_summary.md
 
 ### IntelliJ IDEA ###
 .idea/*
@@ -34,3 +37,17 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+captures
+.externalNativeBuild
+.cxx
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+!*.xcodeproj/project.xcworkspace/xcshareddata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+node_modules/
+
+### KMP ###
+kotlin-js-store/

@@ -1,0 +1,45 @@
+package com.kevin7254.blackjack.di
+
+import com.kevin7254.blackjack.domain.controller.GameController
+import com.kevin7254.blackjack.domain.rules.BlackjackRules
+import com.kevin7254.blackjack.domain.repository.DeckRepository
+import com.kevin7254.blackjack.domain.repository.DeckRepositoryImpl
+import com.kevin7254.blackjack.domain.usecase.DealCardUseCase
+import com.kevin7254.blackjack.domain.usecase.DealerTurnUseCase
+import com.kevin7254.blackjack.domain.usecase.FlipCardUseCase
+import com.kevin7254.blackjack.domain.usecase.GameAnimationUseCase
+import com.kevin7254.blackjack.domain.usecase.GameUseCase
+import com.kevin7254.blackjack.domain.usecase.OptimalStrategyUseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import org.koin.core.qualifier.qualifier
+import org.koin.dsl.module
+import com.kevin7254.blackjack.presentation.viewmodel.BlackjackViewModel
+
+val appModule = module {
+
+    // Domain Use-Cases
+    single { DealCardUseCase() }
+    single { BlackjackRules() }
+    single { FlipCardUseCase() }
+    single { DealerTurnUseCase(dealCardUseCase = get(), blackjackRules = get()) }
+    single { GameUseCase(deckRepository = get(), blackjackRules = get()) }
+    single { GameAnimationUseCase(gameUseCase = get()) }
+    single { GameController(gameUseCase = get(), gameAnimationUseCase = get()) }
+    single { OptimalStrategyUseCase(dispatcher = get(qualifier<DefaultDispatcher>())) }
+
+    single<CoroutineDispatcher>(qualifier<DefaultDispatcher>()) { Dispatchers.Default }
+   // single<CoroutineDispatcher>(qualifier<IODispatcher>()) { Dispatchers.IO }
+
+    // Repository
+    single<DeckRepository> { DeckRepositoryImpl() }
+
+    // ViewModel
+    single {
+        BlackjackViewModel(
+            gameAnimationUseCase = get(),
+            optimalStrategyUseCase = get(),
+            dispatcher = get(qualifier<DefaultDispatcher>()),
+        )
+    }
+}
