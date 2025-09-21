@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -24,6 +24,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +42,6 @@ import domain.usecase.StrategyAction
 import domain.usecase.StrategyRecommendation
 import presentation.screens.CommonDefaults.DEBUG
 import presentation.screens.components.GameTableDefaults.ACCENT_COLOR
-import presentation.screens.components.GameTableDefaults.DIVIDER_HEIGHT
 import presentation.screens.components.GameTableDefaults.PADDING
 
 
@@ -121,7 +121,7 @@ private fun BottomHalf(
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.Top,
     ) {
         PlayerSection(gameState = gameState)
         GameResultSection(gameResultDisplay = gameResultDisplay)
@@ -133,6 +133,7 @@ private fun BottomHalf(
             onPlayerStand = onPlayerStand,
             onNewGame = onNewGame,
         )
+        ChipsBox()
     }
 }
 
@@ -256,7 +257,7 @@ private fun PlayerButtons(
             Text("New Game", style = MaterialTheme.typography.button)
         }
     } else {
-        // Show Hit/Stand buttons when game is active with strategy highlighting
+        // Show Hit/Stand buttons when the game is active with strategy highlighting
         Row(horizontalArrangement = Arrangement.spacedBy(PADDING)) {
             val hitModifier = if (DEBUG && strategyRecommendation?.action == StrategyAction.HIT) {
                 Modifier
@@ -320,6 +321,34 @@ private fun PlayerButtons(
                     modifier = Modifier.padding(horizontal = 4.dp),
                     overflow = TextOverflow.Ellipsis,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChipsBox(
+    modifier: Modifier = Modifier,
+    chips: List<Int> = listOf(1, 5, 25, 50, 100, 500, 1000),
+) {
+
+    Box(
+        modifier = modifier
+            .padding(vertical = PADDING, horizontal = 400.dp)
+            .fillMaxSize(),
+
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(PADDING)) {
+            chips.forEach { chip ->
+                IconButton(onClick = {
+                    println("Chip clicked: $chip")
+                }) {
+                    ChipImage(
+                        chip = chip,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
             }
         }
     }
