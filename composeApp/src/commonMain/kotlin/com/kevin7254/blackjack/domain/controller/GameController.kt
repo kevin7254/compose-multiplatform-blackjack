@@ -1,6 +1,6 @@
 package com.kevin7254.blackjack.domain.controller
 
-import com.kevin7254.blackjack.domain.model.GameResult
+import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 import com.kevin7254.blackjack.domain.model.GameState
 import com.kevin7254.blackjack.domain.usecase.GameAnimationUseCase
 import com.kevin7254.blackjack.domain.usecase.GameUseCase
@@ -58,7 +58,7 @@ class GameController(
 
     suspend fun playerStand(): Result<Unit> {
         val currentState = _gameState.value
-        return if (currentState != null && currentState.gameResult == GameResult.PLAYING) {
+        return if (currentState != null && currentState.gameOutCome == GameOutcome.Playing) {
             try {
                 _isAnimating.value = true
 
@@ -83,7 +83,7 @@ class GameController(
 
 
     fun isGameOver(): Boolean {
-        return _gameState.value?.gameResult?.let { it != GameResult.PLAYING } ?: false
+        return _gameState.value?.gameOutCome?.let { it != GameOutcome.Playing } ?: false
     }
 
 
@@ -91,7 +91,7 @@ class GameController(
         action: (GameState) -> GameState
     ): Result<Unit> {
         val currentState = _gameState.value
-        return if (currentState != null && currentState.gameResult == GameResult.PLAYING) {
+        return if (currentState != null && currentState.gameOutCome == GameOutcome.Playing) {
             try {
                 _isAnimating.value = true
 

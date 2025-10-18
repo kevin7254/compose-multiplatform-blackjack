@@ -1,6 +1,5 @@
 package com.kevin7254.blackjack.domain.model
 
-
 data class Card(
     val rank: Rank,
     val suit: Suit,

@@ -54,7 +54,7 @@ fun GameTable(
     onPlayerStand: () -> Unit,
     onNewGame: () -> Unit,
 ) {
-    val gameResultDisplay = gameState.gameResult.toDisplay()
+    val gameResultDisplay = gameState.gameOutCome.toDisplay()
     val isGameOver = gameResultDisplay.isGameOver
 
     Column(

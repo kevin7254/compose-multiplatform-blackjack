@@ -1,7 +1,7 @@
 package com.kevin7254.blackjack.domain.usecase
 
+import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 import com.kevin7254.blackjack.domain.model.Deck
-import com.kevin7254.blackjack.domain.model.GameResult
 import com.kevin7254.blackjack.domain.model.GameState
 import com.kevin7254.blackjack.domain.model.Hand
 import kotlinx.coroutines.delay
@@ -119,7 +119,7 @@ class GameAnimationUseCase(
             deck = deck,
             playerCards = playerHand,
             dealerCards = dealerHand,
-            gameResult = GameResult.PLAYING,
+            gameOutCome = GameOutcome.Playing,
         )
     }
 }

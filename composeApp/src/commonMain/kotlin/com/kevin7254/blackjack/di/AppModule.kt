@@ -1,5 +1,7 @@
 package com.kevin7254.blackjack.di
 
+import com.kevin7254.blackjack.domain.bank.BettingInteractor
+import com.kevin7254.blackjack.domain.bank.InMemoryBettingInteractor
 import com.kevin7254.blackjack.domain.controller.GameController
 import com.kevin7254.blackjack.domain.rules.BlackjackRules
 import com.kevin7254.blackjack.domain.repository.DeckRepository
@@ -34,11 +36,14 @@ val appModule = module {
     // Repository
     single<DeckRepository> { DeckRepositoryImpl() }
 
+    single<BettingInteractor> { InMemoryBettingInteractor() }
+
     // ViewModel
     single {
         BlackjackViewModel(
             gameAnimationUseCase = get(),
             optimalStrategyUseCase = get(),
+            bettingInteractor = get(),
             dispatcher = get(qualifier<DefaultDispatcher>()),
         )
     }

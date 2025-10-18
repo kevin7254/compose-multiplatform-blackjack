@@ -3,11 +3,17 @@ package com.kevin7254.blackjack.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kevin7254.blackjack.di.DefaultDispatcher
+import com.kevin7254.blackjack.domain.bank.BettingInteractor
+import com.kevin7254.blackjack.domain.bank.model.Chips
+import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 import com.kevin7254.blackjack.domain.model.GameState
+import com.kevin7254.blackjack.domain.model.RoundPhase
+import com.kevin7254.blackjack.domain.model.toDisplay
 import com.kevin7254.blackjack.domain.usecase.GameAnimationUseCase
 import com.kevin7254.blackjack.domain.usecase.OptimalStrategyUseCase
 import com.kevin7254.blackjack.domain.usecase.StrategyAction
 import com.kevin7254.blackjack.domain.usecase.StrategyRecommendation
+import com.kevin7254.blackjack.util.Quad
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -32,6 +39,7 @@ import kotlin.coroutines.cancellation.CancellationException
 class BlackjackViewModel(
     private val gameAnimationUseCase: GameAnimationUseCase,
     private val optimalStrategyUseCase: OptimalStrategyUseCase,
+    private val bettingInteractor: BettingInteractor,
     @param:DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -70,6 +78,10 @@ class BlackjackViewModel(
         }
     }
 
+    fun onChipClicked(amount: Int) = bettingInteractor.placeBet(Chips(amount))
+
+    fun onClearBet() = bettingInteractor.clearBet()
+
     /**
      * A higher-order function to handle any action that requires a valid, non-animating
      * game state (e.g., Hit, Stand). It handles all the precondition checks.
@@ -77,12 +89,7 @@ class BlackjackViewModel(
      * @param action A lambda that takes the current [GameState] and returns a [Flow] of new states.
      */
     private fun runStatefulAction(action: (GameState) -> Flow<GameState>) {
-        val currentSuccessState = uiState.value as? BlackjackUiState.Success
-
-        // Precondition check: Do nothing if we are not in a success state or are already busy.
-        if (currentSuccessState == null || currentSuccessState.isAnimating) {
-            return
-        }
+        val currentSuccessState = uiState.value as? BlackjackUiState.Success ?: return
 
         // Set the animating flag immediately for UI responsiveness.
         _uiState.value = currentSuccessState.copy(isAnimating = true)
@@ -104,7 +111,7 @@ class BlackjackViewModel(
         gameFlowJob?.cancel()
 
         gameFlowJob = viewModelScope.launch(dispatcher) {
-            flowProvider()
+            val gameFlow = flowProvider()
                 .distinctUntilChanged()
                 .flatMapLatest { gs ->
                     if (gs.doneDealingCards()) {
@@ -115,24 +122,45 @@ class BlackjackViewModel(
                         flowOf(gs to waitingRec)
                     }
                 }
-                .catch { e ->
-                    if (e !is CancellationException) {
-                        e.printStackTrace()
-                        _uiState.value =
-                            BlackjackUiState.Error("An error occurred: ${e.message}")
+
+            combine(
+                gameFlow,
+                bettingInteractor.betState,
+                bettingInteractor.bankrollState,
+            ) { (gs, rec), bs, br -> Quad(gs, rec, bs, br) }
+                .onCompletion {
+                    (_uiState.value as? BlackjackUiState.Success)?.let {
+                        _uiState.value = it.copy(isAnimating = false)
                     }
                 }
-                .onCompletion {
-                    (_uiState.value as? BlackjackUiState.Success)
-                        ?.let { _uiState.value = it.copy(isAnimating = false) }
+                .catch { e ->
+                    if (e !is CancellationException) _uiState.value =
+                        BlackjackUiState.Error("An error occurred: ${e.message}")
                 }
-                .collect { (state, rec) ->
+                .collect { (gs, rec, bs, br) ->
+                    settleIfOver(gs)
                     _uiState.value = BlackjackUiState.Success(
-                        gameState = state,
+                        gameState = gs,
                         recommendation = rec,
                         isAnimating = true,
+                        roundPhase = derivePhaseFrom(gs),
+                        bankroll = br,
+                        betState = bs,
                     )
                 }
+        }
+    }
+
+    private fun derivePhaseFrom(gs: GameState): RoundPhase = when {
+        !gs.dealerCards.cards.any() && !gs.playerCards.cards.any() -> RoundPhase.PlacingBet
+        gs.dealerCards.cards.size + gs.playerCards.cards.size < 4 -> RoundPhase.Dealing
+        gs.gameOutCome !is GameOutcome.Playing -> RoundPhase.RoundOver
+        else -> RoundPhase.PlayerTurn //TODO : improve probably
+    }
+
+    private fun settleIfOver(gs: GameState) {
+        if (gs.gameOutCome !is GameOutcome.Playing) {
+            bettingInteractor.settle(gs.gameOutCome)
         }
     }
 

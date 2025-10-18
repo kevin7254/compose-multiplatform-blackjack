@@ -26,8 +26,8 @@ class GameUseCase(
         // Dealer's second card (face down)
         val (deckAfterD2, dealerHand2) = dealCard(deckAfterP2, dealerHand1, faceUp = false)
 
-        val result = blackjackRules.evaluateResult(playerHand2, dealerHand2)
-        return GameState(deckAfterD2, playerHand2, dealerHand2, result)
+        val gameOutCome = blackjackRules.evaluateResult(playerHand2, dealerHand2)
+        return GameState(deckAfterD2, playerHand2, dealerHand2, gameOutCome)
     }
 
     /**
@@ -35,8 +35,8 @@ class GameUseCase(
      */
     fun playerHit(currentState: GameState): GameState {
         val (updatedDeck, updatedHand) = dealCard(currentState.deck, currentState.playerCards)
-        val result = blackjackRules.evaluateResult(updatedHand, currentState.dealerCards)
-        return currentState.copy(deck = updatedDeck, playerCards = updatedHand, gameResult = result)
+        val gameOutCome = blackjackRules.evaluateResult(updatedHand, currentState.dealerCards)
+        return currentState.copy(deck = updatedDeck, playerCards = updatedHand, gameOutCome = gameOutCome)
     }
 
     /**
@@ -49,8 +49,8 @@ class GameUseCase(
         // Run the dealer's turn to the end and get the final deck and hand.
         val (finalDeck, finalDealerHand) = dealerTurnAsSequence(currentState.deck, revealedDealerHand).last()
 
-        val result = blackjackRules.evaluateResult(currentState.playerCards, finalDealerHand)
-        return currentState.copy(deck = finalDeck, dealerCards = finalDealerHand, gameResult = result)
+        val gameOutCome = blackjackRules.evaluateResult(currentState.playerCards, finalDealerHand)
+        return currentState.copy(deck = finalDeck, dealerCards = finalDealerHand, gameOutCome = gameOutCome)
     }
 
     /**

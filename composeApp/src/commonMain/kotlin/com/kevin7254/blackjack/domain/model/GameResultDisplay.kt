@@ -1,6 +1,7 @@
 package com.kevin7254.blackjack.domain.model
 
 import androidx.compose.ui.graphics.Color
+import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 
 data class GameResultDisplay(
     val message: String,
@@ -8,36 +9,48 @@ data class GameResultDisplay(
     val isGameOver: Boolean,
 )
 
-fun GameResult.toDisplay(): GameResultDisplay {
+fun GameOutcome.toDisplay(): GameResultDisplay {
     return when (this) {
-        GameResult.PLAYING -> GameResultDisplay(
+        GameOutcome.Playing -> GameResultDisplay(
             message = "Game in Progress.",
             color = Color.White,
             isGameOver = false
         )
 
-        GameResult.PLAYER_WINS -> GameResultDisplay(
+        GameOutcome.PlayerWin -> GameResultDisplay(
             message = "You Win!",
             color = Color.Green,
             isGameOver = true
         )
 
-        GameResult.PLAYER_WINS_BLACKJACK -> GameResultDisplay(
+        GameOutcome.PlayerBlackJack -> GameResultDisplay(
             message = "BLACKJACK!",
             color = Color(0xFFFFD700), // Gold
             isGameOver = true
         )
 
-        GameResult.DEALER_WINS -> GameResultDisplay(
+        GameOutcome.DealerWin -> GameResultDisplay(
             message = "Dealer Wins.",
             color = Color.Red,
             isGameOver = true
         )
 
-        GameResult.TIE -> GameResultDisplay(
+        GameOutcome.Push -> GameResultDisplay(
             message = "Push.",
             color = Color.Yellow,
             isGameOver = true
+        )
+
+        GameOutcome.PlayerBust -> GameResultDisplay(
+            message = "You Bust!",
+            color = Color.Red,
+            isGameOver = true,
+        )
+
+        GameOutcome.DealerWinAndBlackJack -> GameResultDisplay(
+            message = "Dealer Wins and you have BLACKJACK!", //TODO?
+            color = Color(0xFFFFD700),
+            isGameOver = true,
         )
     }
 }

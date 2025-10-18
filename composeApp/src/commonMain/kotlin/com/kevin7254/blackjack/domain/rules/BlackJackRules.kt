@@ -1,6 +1,6 @@
 package com.kevin7254.blackjack.domain.rules
 
-import com.kevin7254.blackjack.domain.model.GameResult
+import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 import com.kevin7254.blackjack.domain.model.Hand
 
 
@@ -10,12 +10,12 @@ class BlackjackRules {
         return dealerHand.totalValue() < 17
     }
 
-    fun evaluateResult(playerHand: Hand, dealerHand: Hand): GameResult {
+    fun evaluateResult(playerHand: Hand, dealerHand: Hand): GameOutcome {
         // Handle blackjack and bust cases first
         return when {
-            playerHand.isBlackJack -> GameResult.PLAYER_WINS_BLACKJACK
-            playerHand.bestValue() > 21 -> GameResult.DEALER_WINS
-            dealerHand.cards.run { any { !it.isFaceUp } || size < 2 } -> GameResult.PLAYING // Still playing
+            playerHand.isBlackJack -> GameOutcome.PlayerBlackJack
+            playerHand.bestValue() > 21 -> GameOutcome.DealerWin
+            dealerHand.cards.run { any { !it.isFaceUp } || size < 2 } -> GameOutcome.Playing // Still playing
             else -> {
                 // Calculate totals
                 val playerTotal = playerHand.bestValue()
@@ -23,9 +23,9 @@ class BlackjackRules {
 
                 // Determine results based on busts and totals
                 when {
-                    playerTotal > 21 && dealerTotal <= 21 -> GameResult.DEALER_WINS
-                    dealerTotal > 21 && playerTotal <= 21 -> GameResult.PLAYER_WINS
-                    playerTotal > 21 && dealerTotal > 21 -> GameResult.TIE
+                    playerTotal > 21 && dealerTotal <= 21 -> GameOutcome.DealerWin
+                    dealerTotal > 21 && playerTotal <= 21 -> GameOutcome.PlayerWin
+                    playerTotal > 21 && dealerTotal > 21 -> GameOutcome.Push
                     else -> compareTotals(playerTotal, dealerTotal)
                 }
             }
@@ -33,11 +33,11 @@ class BlackjackRules {
     }
 
 
-    private fun compareTotals(playerTotal: Int, dealerTotal: Int): GameResult {
+    private fun compareTotals(playerTotal: Int, dealerTotal: Int): GameOutcome {
         return when {
-            playerTotal > dealerTotal -> GameResult.PLAYER_WINS
-            playerTotal < dealerTotal -> GameResult.DEALER_WINS
-            else -> GameResult.TIE
+            playerTotal > dealerTotal -> GameOutcome.PlayerWin
+            playerTotal < dealerTotal -> GameOutcome.DealerWin
+            else -> GameOutcome.Push
         }
     }
 
