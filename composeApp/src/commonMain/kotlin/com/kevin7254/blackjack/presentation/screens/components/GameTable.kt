@@ -60,7 +60,7 @@ fun GameTable(
     onChipClicked: (Int) -> Unit,
     onDeal: () -> Unit,
 ) {
-    val gameResultDisplay = gameState.gameOutCome.toDisplay()
+    val gameResultDisplay = toDisplay(gameState.status)
     val isGameOver = gameResultDisplay.isGameOver
 
     Column(

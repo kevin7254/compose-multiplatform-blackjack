@@ -94,8 +94,6 @@ class InMemoryBettingInteractor(
             is GameOutcome.DealerWinAndBlackJack -> bet * 0.0
             is GameOutcome.PlayerWin -> bet * 2.0
             is GameOutcome.DealerWin -> bet * 0.0
-            // TODO Nasty! fix
-            is GameOutcome.Playing -> throw IllegalArgumentException("Playing game outcome should not be settled.")
         }
         bankrollState.value = bankrollState.value.copy(balance = bankrollState.value.balance + addBack)
         betState.value = betState.value.copy(currentBet = Chips(0), canPlaceBet = true)

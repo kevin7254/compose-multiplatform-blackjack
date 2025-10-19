@@ -16,50 +16,51 @@ data class GameResultDisplay(
 )
 
 /**
- * Converts a [GameOutcome] to a [GameResultDisplay].
+ * Converts a [RoundStatus] to a [GameResultDisplay].
  */
-fun GameOutcome.toDisplay(): GameResultDisplay {
-    return when (this) {
-        GameOutcome.Playing -> GameResultDisplay(
+fun toDisplay(status: RoundStatus): GameResultDisplay {
+    return when (status) {
+        is RoundStatus.InProgress -> GameResultDisplay(
             message = "Game in Progress.",
             color = Color.White,
             isGameOver = false
         )
+        is RoundStatus.Finished -> when (status.outcome) {
+            GameOutcome.PlayerWin -> GameResultDisplay(
+                message = "You Win!",
+                color = Color.Green,
+                isGameOver = true
+            )
 
-        GameOutcome.PlayerWin -> GameResultDisplay(
-            message = "You Win!",
-            color = Color.Green,
-            isGameOver = true
-        )
+            GameOutcome.PlayerBlackJack -> GameResultDisplay(
+                message = "BLACKJACK!",
+                color = Color(0xFFFFD700), // Gold
+                isGameOver = true
+            )
 
-        GameOutcome.PlayerBlackJack -> GameResultDisplay(
-            message = "BLACKJACK!",
-            color = Color(0xFFFFD700), // Gold
-            isGameOver = true
-        )
+            GameOutcome.DealerWin -> GameResultDisplay(
+                message = "Dealer Wins.",
+                color = Color.Red,
+                isGameOver = true
+            )
 
-        GameOutcome.DealerWin -> GameResultDisplay(
-            message = "Dealer Wins.",
-            color = Color.Red,
-            isGameOver = true
-        )
+            GameOutcome.Push -> GameResultDisplay(
+                message = "Push.",
+                color = Color.Yellow,
+                isGameOver = true
+            )
 
-        GameOutcome.Push -> GameResultDisplay(
-            message = "Push.",
-            color = Color.Yellow,
-            isGameOver = true
-        )
+            GameOutcome.PlayerBust -> GameResultDisplay(
+                message = "You Bust!",
+                color = Color.Red,
+                isGameOver = true,
+            )
 
-        GameOutcome.PlayerBust -> GameResultDisplay(
-            message = "You Bust!",
-            color = Color.Red,
-            isGameOver = true,
-        )
-
-        GameOutcome.DealerWinAndBlackJack -> GameResultDisplay(
-            message = "Dealer Wins and you have BLACKJACK!", //TODO?
-            color = Color(0xFFFFD700),
-            isGameOver = true,
-        )
+            GameOutcome.DealerWinAndBlackJack -> GameResultDisplay(
+                message = "Dealer Wins and you have BLACKJACK!", //TODO?
+                color = Color(0xFFFFD700),
+                isGameOver = true,
+            )
+        }
     }
 }

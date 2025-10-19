@@ -5,10 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.kevin7254.blackjack.di.DefaultDispatcher
 import com.kevin7254.blackjack.domain.bank.BettingInteractor
 import com.kevin7254.blackjack.domain.bank.model.Chips
-import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 import com.kevin7254.blackjack.domain.model.GameState
 import com.kevin7254.blackjack.domain.model.RoundPhase
-import com.kevin7254.blackjack.domain.model.toDisplay
+import com.kevin7254.blackjack.domain.model.RoundStatus
 import com.kevin7254.blackjack.domain.usecase.GameAnimationUseCase
 import com.kevin7254.blackjack.domain.usecase.OptimalStrategyUseCase
 import com.kevin7254.blackjack.domain.usecase.StrategyAction
@@ -167,7 +166,7 @@ class BlackjackViewModel(
     private fun derivePhaseFrom(gs: GameState): RoundPhase = when {
         !gs.dealerCards.cards.any() && !gs.playerCards.cards.any() -> RoundPhase.PlacingBet
         gs.dealerCards.cards.size + gs.playerCards.cards.size < 4 -> RoundPhase.Dealing
-        gs.gameOutCome !is GameOutcome.Playing -> RoundPhase.RoundOver
+        gs.status is RoundStatus.Finished -> RoundPhase.RoundOver
         else -> RoundPhase.PlayerTurn //TODO : improve probably
     }
 
@@ -176,9 +175,8 @@ class BlackjackViewModel(
     }
 
     private fun settleIfOver(gs: GameState) {
-        if (gs.gameOutCome !is GameOutcome.Playing) {
-            bettingInteractor.settle(gs.gameOutCome)
-        }
+        val finished = gs.status as? RoundStatus.Finished ?: return
+        bettingInteractor.settle(finished.outcome)
     }
 
     private val waitingRec = StrategyRecommendation(

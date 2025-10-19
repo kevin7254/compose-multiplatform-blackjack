@@ -1,9 +1,9 @@
 package com.kevin7254.blackjack.domain.usecase
 
-import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 import com.kevin7254.blackjack.domain.model.Deck
 import com.kevin7254.blackjack.domain.model.GameState
 import com.kevin7254.blackjack.domain.model.Hand
+import com.kevin7254.blackjack.domain.model.RoundStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -124,7 +124,7 @@ class GameAnimationUseCase(
             deck = deck,
             playerCards = playerHand,
             dealerCards = dealerHand,
-            gameOutCome = GameOutcome.Playing,
+            status = RoundStatus.InProgress,
         )
     }
 }

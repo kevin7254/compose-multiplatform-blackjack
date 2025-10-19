@@ -3,8 +3,11 @@ package com.kevin7254.blackjack.domain.model
 
 /**
  * Round phase enum.
+ * Represents high-level UI phases of a round.
  */
-// TODO: move/delete?
 enum class RoundPhase {
-    PlacingBet, Dealing, PlayerTurn, DealerTurn, Settling, RoundOver
+    PlacingBet,
+    Dealing,
+    PlayerTurn,
+    RoundOver,
 }

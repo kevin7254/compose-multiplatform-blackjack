@@ -1,7 +1,7 @@
 package com.kevin7254.blackjack.domain.bank.model
 
 /**
- * The outcome of a game.
+ * The outcome of a finished round.
  */
 sealed interface GameOutcome {
     /**
@@ -35,10 +35,4 @@ sealed interface GameOutcome {
      * the player busting.
      */
     data object DealerWin : GameOutcome
-
-    /**
-     * The game is still in progress.
-     */
-    // TODO IDK?
-    data object Playing : GameOutcome
 }

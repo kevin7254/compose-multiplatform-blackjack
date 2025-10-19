@@ -1,7 +1,6 @@
 package com.kevin7254.blackjack.domain.model
 
 import androidx.compose.runtime.Immutable
-import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 
 /**
  * Represents the current state of a blackjack game.
@@ -9,15 +8,14 @@ import com.kevin7254.blackjack.domain.bank.model.GameOutcome
  * @param deck the deck of cards currently in the game.
  * @param playerCards the cards currently held by the player.
  * @param dealerCards the cards currently held by the dealer.
- * @param gameOutCome the outcome of the game.
+ * @param status whether the round is in progress or finished with an outcome.
  */
-// TODO Should we have RoundPhase as well?
 @Immutable
 data class GameState(
     val deck: Deck,
     val playerCards: Hand,
     val dealerCards: Hand,
-    val gameOutCome: GameOutcome,
+    val status: RoundStatus,
 ) {
     companion object {
         /**
@@ -28,7 +26,7 @@ data class GameState(
                 Deck(),
                 Hand(),
                 Hand(),
-                GameOutcome.Playing,
+                RoundStatus.InProgress,
             )
         }
     }
