@@ -16,25 +16,7 @@ data class Card(
     override fun toString(): String {
         return "${rank.name} of ${suit.name}"
     }
-
-    fun toShortString(): String {
-        return "${rank.name}${suit.name}"
-    }
-
-    fun toChar(): Char {
-        return toShortString()[0]
-    }
-
     fun toInt(): Int {
         return "${suit.ordinal}${rank.displayValue}".toInt()
-    }
-
-
-    companion object {
-        fun fromInt(i: Int): Card {
-            val rank = Rank.entries[i % 13]
-            val suit = Suit.entries[i / 13]
-            return Card(rank, suit)
-        }
     }
 }

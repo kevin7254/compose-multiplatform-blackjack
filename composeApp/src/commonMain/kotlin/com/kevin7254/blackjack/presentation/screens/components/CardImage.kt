@@ -20,7 +20,6 @@ import org.jetbrains.compose.resources.painterResource
 fun CardImage(
     card: Card,
 ) {
-
     val fileName = if (card.isFaceUp) {
         card.imageName
     } else {
@@ -29,7 +28,6 @@ fun CardImage(
 
     // TODO a bit nasty might be better ways.. key is "_2D", "_2H" etc.
     val drawableResource = Res.allDrawableResources[fileName]
-
     val painter = painterResource(drawableResource ?: Res.drawable._1B)
 
     Image(

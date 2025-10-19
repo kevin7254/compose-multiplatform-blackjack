@@ -400,7 +400,7 @@ private fun ChipsBox(
     }
 }
 
-object GameTableDefaults {
+private object GameTableDefaults {
     val PADDING = 16.dp
     val ACCENT_COLOR = Color(0xFF2196F3)
 }

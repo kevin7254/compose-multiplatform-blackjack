@@ -2,7 +2,6 @@ package com.kevin7254.blackjack.di
 
 import com.kevin7254.blackjack.domain.bank.BettingInteractor
 import com.kevin7254.blackjack.domain.bank.InMemoryBettingInteractor
-import com.kevin7254.blackjack.domain.controller.GameController
 import com.kevin7254.blackjack.domain.rules.BlackjackRules
 import com.kevin7254.blackjack.domain.repository.DeckRepository
 import com.kevin7254.blackjack.domain.repository.DeckRepositoryImpl
@@ -27,7 +26,6 @@ val appModule = module {
     single { DealerTurnUseCase(dealCardUseCase = get(), blackjackRules = get()) }
     single { GameUseCase(deckRepository = get(), blackjackRules = get()) }
     single { GameAnimationUseCase(gameUseCase = get()) }
-    single { GameController(gameUseCase = get(), gameAnimationUseCase = get()) }
     single { OptimalStrategyUseCase(dispatcher = get(qualifier<DefaultDispatcher>())) }
 
     single<CoroutineDispatcher>(qualifier<DefaultDispatcher>()) { Dispatchers.Default }

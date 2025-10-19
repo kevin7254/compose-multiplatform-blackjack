@@ -15,28 +15,14 @@ data class Deck(
     fun contains(card: Card): Boolean = cards.contains(card)
 
     companion object {
-        // TODO: functional
         fun createStandardDeck(shuffle: Boolean = false): Deck {
-            val cards = mutableListOf<Card>()
-            for (suit in Suit.entries) {
-                for (rank in Rank.entries) {
-                    cards.add(Card(rank, suit))
+            val cards = Suit.entries.flatMap { suit ->
+                Rank.entries.map { rank ->
+                    Card(rank, suit)
                 }
-            }
-            if (shuffle) cards.shuffle()
+            }.let { if (shuffle) it.shuffled() else it }
+
             return Deck(cards)
-        }
-
-        fun createStandardDeckOfCards(shuffle: Boolean = false): List<Card> {
-            return createStandardDeck(shuffle).toList()
-        }
-
-        fun createMultiDeckOfCards(numberOfDecks: Int, shuffle: Boolean = false): List<Card> {
-            val cards = mutableListOf<Card>()
-            for (i in 0 until numberOfDecks) {
-                cards.addAll(createStandardDeckOfCards())
-            }
-            return if (shuffle) cards else cards.shuffled()
         }
     }
 }

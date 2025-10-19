@@ -102,7 +102,7 @@ fun AnimatedLazyRow(
     }
 }
 
-object CardRowDefaults {
+private object CardRowDefaults {
     const val ANIMATION_DURATION_MS = 700
     val DIVIDER_HEIGHT = 8.dp
 }

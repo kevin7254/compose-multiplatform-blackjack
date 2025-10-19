@@ -193,9 +193,4 @@ class BlackjackViewModel(
             //TODO: Improve
             currentDeck = deck,
         )
-
-
-    fun onErrorDismissed() {
-        onGameReset()
-    }
 }

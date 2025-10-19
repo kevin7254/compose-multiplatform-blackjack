@@ -11,14 +11,6 @@ data class Hand(
         return copy(cards = cards + card)
     }
 
-    fun removeCard(card: Card): Hand {
-        return copy(cards = cards - card)
-    }
-
-    fun clearCards(): Hand {
-        return copy(cards = emptyList())
-    }
-
     fun totalValue(): Int {
         val baseSum = cards.sumOf { card ->
             if (!card.isFaceUp) 0
@@ -64,7 +56,7 @@ data class Hand(
      * For convenience, returns the "best" value that does not exceed 21,
      * or the smallest total if they all bust.
      *
-     * E.g. If [7, 17] are possible, returns 17. If all > 21, returns the minimum.
+     * E.g., If [7, 17] are possible, returns 17. If all > 21, returns the minimum.
      */
     fun bestValue(): Int {
         val allTotals = possibleValues()
