@@ -52,6 +52,9 @@ class BlackjackViewModel(
         showBettingPhase()
     }
 
+    /**
+     * Called when the player wants to start a new game.
+     */
     fun onDeal() {
         bettingInteractor.lockBetForRound()
         _uiState.value = BlackjackUiState.Loading
@@ -80,6 +83,9 @@ class BlackjackViewModel(
         showBettingPhase()
     }
 
+    /**
+     * Called when the player wants to place a bet.
+     */
     fun onChipClicked(amount: Int) = bettingInteractor.placeBet(Chips(amount))
 
     fun onClearBet() = bettingInteractor.clearBet()

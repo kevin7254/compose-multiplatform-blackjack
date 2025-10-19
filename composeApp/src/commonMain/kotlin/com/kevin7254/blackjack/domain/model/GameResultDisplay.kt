@@ -3,12 +3,21 @@ package com.kevin7254.blackjack.domain.model
 import androidx.compose.ui.graphics.Color
 import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 
+/**
+ * Game result display data class.
+ * @param message The message to display.
+ * @param color The color of the message.
+ * @param isGameOver Whether the game is over.
+ */
 data class GameResultDisplay(
     val message: String,
     val color: Color,
     val isGameOver: Boolean,
 )
 
+/**
+ * Converts a [GameOutcome] to a [GameResultDisplay].
+ */
 fun GameOutcome.toDisplay(): GameResultDisplay {
     return when (this) {
         GameOutcome.Playing -> GameResultDisplay(

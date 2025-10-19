@@ -1,5 +1,10 @@
 package com.kevin7254.blackjack.domain.model
 
+/**
+ * Rank of the card.
+ * @param value the value of the rank.
+ * @param displayValue the display value of the rank.
+ */
 enum class Rank(val value: UByte, val displayValue: Int) {
     ACE(1u, 1),
     TWO(2u, 2),

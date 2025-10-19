@@ -2,15 +2,28 @@ package com.kevin7254.blackjack.domain.model
 
 import androidx.compose.runtime.Immutable
 
+/**
+ * Represents a hand of [Card]s.
+ *
+ * Both for player and dealer.
+ * @param cards the list of cards in the hand.
+ */
 @Immutable
 data class Hand(
     val cards: List<Card> = emptyList()
 ) : Comparable<Hand> {
 
+    /**
+     * Adds a [Card] to this [Hand].
+     * @return a new [Hand] instance with the card added.
+     */
     fun addCard(card: Card): Hand {
         return copy(cards = cards + card)
     }
 
+    /**
+     * Returns the total value of the face-up cards.
+     */
     fun totalValue(): Int {
         val baseSum = cards.sumOf { card ->
             if (!card.isFaceUp) 0

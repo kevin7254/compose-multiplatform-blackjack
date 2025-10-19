@@ -12,13 +12,38 @@ import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
+/**
+ * The different actions that the player can take in the game.
+ */
 enum class StrategyAction {
+    /**
+     * Hit (add another card to the hand).
+     */
     HIT,
+
+    /**
+     * Stand (no more cards/end the round).
+     */
     STAND,
+
+    /**
+     * Impossible to win.
+     */
     IMPOSSIBLE,
+
+    /**
+     * Waiting for the simulation to complete or dealer to draw.
+     */
     WAITING,
 }
 
+/**
+ * The recommended action and reason for the action.
+ * The action is a [StrategyAction] and the reason is a human-readable string.
+ *
+ * The action is always the mathematically best action for the current state of the game.
+ * The reason is just for debugging purposes and to explain the decision.
+ */
 data class StrategyRecommendation(
     val action: StrategyAction,
     val reason: String,

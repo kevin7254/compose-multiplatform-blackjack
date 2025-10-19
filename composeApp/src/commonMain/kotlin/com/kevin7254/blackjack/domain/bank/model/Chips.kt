@@ -2,6 +2,11 @@ package com.kevin7254.blackjack.domain.bank.model
 
 import kotlin.jvm.JvmInline
 
+/**
+ * Chips class - the "money" of the game.
+ * Cannot be negative.
+ * @param amount the current number of chips.
+ */
 @JvmInline
 value class Chips(val amount: Int) {
     init {

@@ -5,6 +5,11 @@ import com.kevin7254.blackjack.domain.model.Deck
 import com.kevin7254.blackjack.domain.model.Hand
 
 
+/**
+ * Use case responsible for dealing cards to the dealer.
+ * @param blackjackRules The rules of the game.
+ * @param dealCardUseCase The use case for dealing cards.
+ */
 class DealerTurnUseCase(
     private val dealCardUseCase: DealCardUseCase,
     private val blackjackRules: BlackjackRules,

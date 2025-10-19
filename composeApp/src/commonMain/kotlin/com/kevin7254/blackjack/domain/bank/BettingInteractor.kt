@@ -8,16 +8,55 @@ import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * Interactor for handling betting related operations.
+ */
 interface BettingInteractor {
+    /**
+     * The current bankroll state.
+     * @see [Bankroll]
+     */
     val bankrollState: StateFlow<Bankroll>
+
+    /**
+     * The current bet state.
+     * @see [BetState]
+     */
     val betState: StateFlow<BetState>
+
+    /**
+     * Places a bet with x number of [chips].
+     */
     fun placeBet(chips: Chips)
+
+    /**
+     * Clears the current bet (Back to 0).
+     */
     fun clearBet()
+
+    /**
+     * Buys in a specified number of chips.
+     */
     fun buyIn(amount: Chips)
+
+    /**
+     * Locks the bet for the current round. Player cannot place bets until the round is over.
+     * @return The current [BetState] after locking.
+     */
     fun lockBetForRound(): BetState
+
+    /**
+     * Settles the outcome of a game.
+     * @param outcome The [GameOutcome] of the game.
+     * @return The [BetOutcome] after settling.
+     */
     fun settle(outcome: GameOutcome): BetOutcome
 }
 
+/**
+ * In-memory implementation of [BettingInteractor].
+ * @param initialBankroll The initial bankroll state.
+ */
 class InMemoryBettingInteractor(
     initialBankroll: Bankroll = Bankroll(Chips(1000)),
 ) : BettingInteractor {

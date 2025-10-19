@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.flow
 
 /**
  * Use case responsible for game animations.
- * This separates animation logic from game logic, following the Single Responsibility Principle.
+ * @param gameUseCase The use case for game logic.
+ * @param cardDealDelay The delay between each card being dealt.
+ * @param cardFlipDelay The delay between each card being flipped.
  */
 class GameAnimationUseCase(
     private val gameUseCase: GameUseCase,
@@ -76,6 +78,9 @@ class GameAnimationUseCase(
         emit(nextState)
     }
 
+    /**
+     * Creates an animated flow for a player stand.
+     */
     fun playerStandWithAnimation(currentState: GameState): Flow<GameState> = flow {
         // --- Phase 1: Reveal the dealer's card (orchestration) ---
         val revealedDealerHand = gameUseCase.flipDealerCard(currentState.dealerCards)

@@ -6,6 +6,11 @@ import com.kevin7254.blackjack.domain.model.Hand
 import com.kevin7254.blackjack.domain.repository.DeckRepository
 import com.kevin7254.blackjack.domain.rules.BlackjackRules
 
+/**
+ * Use case responsible for handling game logic.
+ * @param deckRepository The repository for dealing cards.
+ * @param blackjackRules The rules of the game.
+ */
 class GameUseCase(
     private val deckRepository: DeckRepository,
     private val blackjackRules: BlackjackRules,
