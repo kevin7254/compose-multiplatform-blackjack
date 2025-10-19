@@ -15,8 +15,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -62,6 +63,7 @@ fun GameTable(
 ) {
     val gameResultDisplay = toDisplay(gameState.status)
     val isGameOver = gameResultDisplay.isGameOver
+    val isPlacingBet = roundPhase == RoundPhase.PlacingBet
 
     Column(
         modifier = Modifier
@@ -70,18 +72,37 @@ fun GameTable(
     ) {
         TopHalf(
             gameState = gameState,
+            roundPhase = roundPhase,
             strategyRecommendation = strategyRecommendation,
             isGameOver = isGameOver,
             modifier = Modifier.weight(1f).fillMaxWidth()
         )
 
-        HorizontalDivider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            thickness = 1.dp,
-            color = Color.White,
-        )
+        AnimatedVisibility(
+            visible = !isPlacingBet,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                thickness = 1.dp,
+                color = Color.White,
+            )
+        }
+
+        AnimatedVisibility(
+            visible = isPlacingBet,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            BetPrompt(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+            )
+        }
 
         BottomHalf(
             gameState = gameState,
@@ -102,10 +123,14 @@ fun GameTable(
 @Composable
 private fun TopHalf(
     gameState: GameState,
+    roundPhase: RoundPhase,
     strategyRecommendation: StrategyRecommendation,
     isGameOver: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    if (roundPhase == RoundPhase.PlacingBet) {
+        return
+    }
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -116,6 +141,29 @@ private fun TopHalf(
             Spacer(Modifier.height(8.dp))
         }
         DealerSection(gameState = gameState)
+    }
+}
+
+@Composable
+private fun BetPrompt(
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(PADDING),
+            text = "Place your bets.",
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -136,7 +184,7 @@ private fun BottomHalf(
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
+        verticalArrangement = Arrangement.Bottom,
     ) {
         PlayerSection(gameState = gameState)
         GameResultSection(gameResultDisplay = gameResultDisplay)
@@ -150,15 +198,11 @@ private fun BottomHalf(
             onNewGame = onNewGame,
             onDeal = onDeal,
         )
-        Text(
-            text = "Chips: $playerChips",
-            color = Color.White,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Bold
-        )
+
         ChipsBox(
             onChipClicked = onChipClicked,
-            enabled = roundPhase == RoundPhase.PlacingBet
+            amountOfChips = playerChips.balance.amount,
+            enabled = roundPhase == RoundPhase.PlacingBet,
         )
     }
 }
@@ -271,79 +315,85 @@ private fun PlayerButtons(
     onNewGame: () -> Unit,
     onDeal: () -> Unit,
 ) {
-    // todo: combine to common sealed class?
-    if (roundPhase == RoundPhase.PlacingBet) {
-        Button(
-            onClick = onDeal,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF4CAF50),
-                contentColor = Color.White
-            ),
-            modifier = Modifier
-                .fillMaxWidth(0.5f)
-                .height(50.dp)
-        ) {
-            Text("Deal", style = MaterialTheme.typography.titleMedium)
-        }
-    }
-    else if (gameResultDisplay.isGameOver) {
-        // Show New Game button when game is over
-        Button(
-            onClick = onNewGame,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF4CAF50), // Green
-                contentColor = Color.White
-            ),
-            modifier = Modifier
-                .fillMaxWidth(0.5f)
-                .height(50.dp)
-        ) {
-            Text("New Game", style = MaterialTheme.typography.titleMedium)
-        }
-    } else {
-        // Show Hit/Stand buttons when the game is active with strategy highlighting
-        Row(horizontalArrangement = Arrangement.spacedBy(PADDING)) {
-            val hitModifier = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.HIT) {
-                Modifier
-                    .height(50.dp)
-                    .border(3.dp, Color(0xFF4CAF50), RoundedCornerShape(4.dp))
-            } else {
-                Modifier.height(50.dp)
-            }
+    val isPlacingBet = roundPhase == RoundPhase.PlacingBet
+    val isGameOver = gameResultDisplay.isGameOver
 
-            val standModifier = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.STAND) {
-                Modifier
+    when {
+        isPlacingBet -> {
+            Button(
+                onClick = onDeal,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+                modifier = Modifier
+                    .width(250.dp)
                     .height(50.dp)
-                    .border(3.dp, ACCENT_COLOR, RoundedCornerShape(4.dp))
-            } else {
-                Modifier.height(50.dp)
+            ) {
+                Text("Deal", style = MaterialTheme.typography.titleMedium)
             }
+        }
 
+        isGameOver -> {
             Button(
-                onClick = onPlayerHit,
-                shape = RoundedCornerShape(0.dp), //TODO: Should be through theme
+                onClick = onNewGame,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
-                        Color(0xFF4CAF50) else Color(0xFFC7C7C7),
-                    contentColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
-                        Color.White else Color.Black,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
-                modifier = hitModifier
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .height(50.dp)
             ) {
-                Text("Hit", style = MaterialTheme.typography.bodyMedium)
+                Text("New Game", style = MaterialTheme.typography.titleMedium)
             }
-            Button(
-                onClick = onPlayerStand,
-                shape = RoundedCornerShape(0.dp), //TODO: Should be through theme
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
-                        ACCENT_COLOR else Color(0xFFC7C7C7),
-                    contentColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
-                        Color.White else Color.Black,
-                ),
-                modifier = standModifier
-            ) {
-                Text("Stand", style = MaterialTheme.typography.bodyMedium)
+        }
+
+        else -> {
+            // Show Hit/Stand buttons when the game is active with strategy highlighting
+            Row(horizontalArrangement = Arrangement.spacedBy(PADDING)) {
+                val hitModifier = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.HIT) {
+                    Modifier
+                        .height(50.dp)
+                        .border(3.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
+                } else {
+                    Modifier.height(50.dp)
+                }
+
+                val standModifier = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.STAND) {
+                    Modifier
+                        .height(50.dp)
+                        .border(3.dp, ACCENT_COLOR, RoundedCornerShape(8.dp))
+                } else {
+                    Modifier.height(50.dp)
+                }
+
+                Button(
+                    onClick = onPlayerHit,
+                    shape = RoundedCornerShape(8.dp), // ideally from theme
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
+                            MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.HIT)
+                            MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+                    modifier = hitModifier,
+                ) {
+                    Text("Hit", style = MaterialTheme.typography.bodyMedium)
+                }
+                Button(
+                    onClick = onPlayerStand,
+                    shape = RoundedCornerShape(8.dp), // ideally from theme
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
+                            ACCENT_COLOR else MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = if (LOCAL_DEBUG && strategyRecommendation?.action == StrategyAction.STAND)
+                            Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+                    modifier = standModifier,
+                ) {
+                    Text("Stand", style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
     }
@@ -375,32 +425,43 @@ private fun PlayerButtons(
 @Composable
 private fun ChipsBox(
     onChipClicked: (Int) -> Unit,
+    amountOfChips: Int,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
     chips: List<Int> = listOf(1, 5, 25, 50, 100, 500, 1000),
 ) {
+    if (!enabled) {
+        return
+    }
 
     Box(
         modifier = modifier
-            .padding(vertical = PADDING, horizontal = 400.dp)
-            .fillMaxSize(),
+            .padding(vertical = PADDING)
+            .wrapContentSize(),
 
         contentAlignment = Alignment.Center,
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(PADDING)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(PADDING),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             chips.forEach { chip ->
-                IconButton(enabled = enabled, onClick = { onChipClicked(chip) }) {
-                    ChipImage(
-                        chip = chip,
-                        modifier = Modifier.size(40.dp)
-                    )
+                IconButton(onClick = { onChipClicked(chip) }) {
+                    ChipImage(chip = chip)
                 }
             }
+            // TODO: Jumps if number changes
+            Text(
+                text = "$$amountOfChips",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
 
 private object GameTableDefaults {
-    val PADDING = 16.dp
+    val PADDING = 6.dp
     val ACCENT_COLOR = Color(0xFF2196F3)
 }
