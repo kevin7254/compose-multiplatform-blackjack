@@ -36,8 +36,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.kevin7254.blackjack.domain.bank.model.Bankroll
 import com.kevin7254.blackjack.domain.model.GameResultDisplay
 import com.kevin7254.blackjack.domain.model.GameState
+import com.kevin7254.blackjack.domain.model.RoundPhase
 import com.kevin7254.blackjack.domain.model.toDisplay
 import com.kevin7254.blackjack.domain.usecase.StrategyAction
 import com.kevin7254.blackjack.domain.usecase.StrategyRecommendation
@@ -49,10 +51,14 @@ import com.kevin7254.blackjack.presentation.screens.components.GameTableDefaults
 @Composable
 fun GameTable(
     gameState: GameState,
+    roundPhase: RoundPhase,
+    playerChips: Bankroll,
     strategyRecommendation: StrategyRecommendation,
     onPlayerHit: () -> Unit,
     onPlayerStand: () -> Unit,
     onNewGame: () -> Unit,
+    onChipClicked: (Int) -> Unit,
+    onDeal: () -> Unit,
 ) {
     val gameResultDisplay = gameState.gameOutCome.toDisplay()
     val isGameOver = gameResultDisplay.isGameOver
@@ -79,11 +85,15 @@ fun GameTable(
 
         BottomHalf(
             gameState = gameState,
+            roundPhase = roundPhase,
+            playerChips = playerChips,
             gameResultDisplay = gameResultDisplay,
             strategyRecommendation = strategyRecommendation,
             onPlayerHit = onPlayerHit,
             onPlayerStand = onPlayerStand,
             onNewGame = onNewGame,
+            onChipClicked = onChipClicked,
+            onDeal = onDeal,
             modifier = Modifier.weight(1f).fillMaxWidth()
         )
     }
@@ -112,11 +122,15 @@ private fun TopHalf(
 @Composable
 private fun BottomHalf(
     gameState: GameState,
+    roundPhase: RoundPhase,
+    playerChips: Bankroll,
     gameResultDisplay: GameResultDisplay,
     strategyRecommendation: StrategyRecommendation,
     onPlayerHit: () -> Unit,
     onPlayerStand: () -> Unit,
     onNewGame: () -> Unit,
+    onChipClicked: (Int) -> Unit,
+    onDeal: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -128,13 +142,24 @@ private fun BottomHalf(
         GameResultSection(gameResultDisplay = gameResultDisplay)
         PlayerButtons(
             gameState = gameState,
+            roundPhase = roundPhase,
             gameResultDisplay = gameResultDisplay,
             strategyRecommendation = strategyRecommendation,
             onPlayerHit = onPlayerHit,
             onPlayerStand = onPlayerStand,
             onNewGame = onNewGame,
+            onDeal = onDeal,
         )
-        ChipsBox()
+        Text(
+            text = "Chips: $playerChips",
+            color = Color.White,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold
+        )
+        ChipsBox(
+            onChipClicked = onChipClicked,
+            enabled = roundPhase == RoundPhase.PlacingBet
+        )
     }
 }
 
@@ -238,14 +263,30 @@ private fun GameResultSection(
 @Composable
 private fun PlayerButtons(
     gameState: GameState,
+    roundPhase: RoundPhase,
     gameResultDisplay: GameResultDisplay,
     strategyRecommendation: StrategyRecommendation?,
     onPlayerHit: () -> Unit,
     onPlayerStand: () -> Unit,
     onNewGame: () -> Unit,
+    onDeal: () -> Unit,
 ) {
-    // Action Buttons
-    if (gameResultDisplay.isGameOver) {
+    // todo: combine to common sealed class?
+    if (roundPhase == RoundPhase.PlacingBet) {
+        Button(
+            onClick = onDeal,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF4CAF50),
+                contentColor = Color.White
+            ),
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .height(50.dp)
+        ) {
+            Text("Deal", style = MaterialTheme.typography.titleMedium)
+        }
+    }
+    else if (gameResultDisplay.isGameOver) {
         // Show New Game button when game is over
         Button(
             onClick = onNewGame,
@@ -333,6 +374,8 @@ private fun PlayerButtons(
 
 @Composable
 private fun ChipsBox(
+    onChipClicked: (Int) -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
     chips: List<Int> = listOf(1, 5, 25, 50, 100, 500, 1000),
 ) {
@@ -346,10 +389,7 @@ private fun ChipsBox(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(PADDING)) {
             chips.forEach { chip ->
-                IconButton(onClick = {
-                    // TODO: Logic
-                    println("Chip clicked: $chip")
-                }) {
+                IconButton(enabled = enabled, onClick = { onChipClicked(chip) }) {
                     ChipImage(
                         chip = chip,
                         modifier = Modifier.size(40.dp)

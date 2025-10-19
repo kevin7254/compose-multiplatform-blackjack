@@ -53,11 +53,16 @@ fun BlackjackScreen(
 
             is BlackjackUiState.Success -> {
                 GameTable(
+                    // TODO: Reduce states?
                     gameState = state.gameState,
+                    roundPhase = state.roundPhase,
+                    playerChips = state.bankroll,
                     strategyRecommendation = state.recommendation,
                     onPlayerHit = viewModel::onPlayerHit,
                     onPlayerStand = viewModel::onPlayerStand,
                     onNewGame = viewModel::onGameReset,
+                    onChipClicked = viewModel::onChipClicked,
+                    onDeal = viewModel::onDeal,
                 )
             }
         }

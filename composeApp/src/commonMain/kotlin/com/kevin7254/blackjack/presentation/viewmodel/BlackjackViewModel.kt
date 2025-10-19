@@ -49,7 +49,13 @@ class BlackjackViewModel(
     private var gameFlowJob: Job? = null
 
     init {
-        onGameReset()
+        showBettingPhase()
+    }
+
+    fun onDeal() {
+        bettingInteractor.lockBetForRound()
+        _uiState.value = BlackjackUiState.Loading
+        executeFlow { gameAnimationUseCase.newGameWithAnimation() }
     }
 
     /**
@@ -71,11 +77,7 @@ class BlackjackViewModel(
      * depend on a previous success state.
      */
     fun onGameReset() {
-        // Set the initial state to Loading, then execute the flow for a new game.
-        _uiState.value = BlackjackUiState.Loading
-        executeFlow {
-            gameAnimationUseCase.newGameWithAnimation()
-        }
+        showBettingPhase()
     }
 
     fun onChipClicked(amount: Int) = bettingInteractor.placeBet(Chips(amount))
@@ -107,7 +109,10 @@ class BlackjackViewModel(
      * @param flowProvider A lambda that creates the [Flow<GameState>] to be executed.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun executeFlow(flowProvider: () -> Flow<GameState>) {
+    private fun executeFlow(
+        animate: Boolean = true,
+        flowProvider: () -> Flow<GameState>
+    ) {
         gameFlowJob?.cancel()
 
         gameFlowJob = viewModelScope.launch(dispatcher) {
@@ -117,7 +122,7 @@ class BlackjackViewModel(
                     if (gs.doneDealingCards()) {
                         gs.recommendationFlow()
                             .map { rec -> gs to rec }
-                            .onStart { emit(gs to waitingRec) } // emit initial waitingRec before rec
+                            .onStart { emit(gs to waitingRec) }
                     } else {
                         flowOf(gs to waitingRec)
                     }
@@ -129,8 +134,10 @@ class BlackjackViewModel(
                 bettingInteractor.bankrollState,
             ) { (gs, rec), bs, br -> Quad(gs, rec, bs, br) }
                 .onCompletion {
-                    (_uiState.value as? BlackjackUiState.Success)?.let {
-                        _uiState.value = it.copy(isAnimating = false)
+                    if (animate) {
+                        (_uiState.value as? BlackjackUiState.Success)?.let {
+                            _uiState.value = it.copy(isAnimating = false)
+                        }
                     }
                 }
                 .catch { e ->
@@ -142,7 +149,7 @@ class BlackjackViewModel(
                     _uiState.value = BlackjackUiState.Success(
                         gameState = gs,
                         recommendation = rec,
-                        isAnimating = true,
+                        isAnimating = animate,
                         roundPhase = derivePhaseFrom(gs),
                         bankroll = br,
                         betState = bs,
@@ -156,6 +163,10 @@ class BlackjackViewModel(
         gs.dealerCards.cards.size + gs.playerCards.cards.size < 4 -> RoundPhase.Dealing
         gs.gameOutCome !is GameOutcome.Playing -> RoundPhase.RoundOver
         else -> RoundPhase.PlayerTurn //TODO : improve probably
+    }
+
+    private fun showBettingPhase() {
+        executeFlow(animate = false) { flowOf(GameState.empty()) }
     }
 
     private fun settleIfOver(gs: GameState) {

@@ -13,9 +13,8 @@ interface BettingInteractor {
     val betState: StateFlow<BetState>
     fun placeBet(chips: Chips)
     fun clearBet()
-
     fun buyIn(amount: Chips)
-
+    fun lockBetForRound(): BetState
     fun settle(outcome: GameOutcome): BetOutcome
 }
 
@@ -24,8 +23,14 @@ class InMemoryBettingInteractor(
 ) : BettingInteractor {
     override val bankrollState = MutableStateFlow(initialBankroll)
     override val betState = MutableStateFlow(BetState())
+
     override fun placeBet(chips: Chips) {
-        betState.value = betState.value.copy(currentBet = chips)
+        val st = betState.value
+        if (!st.canPlaceBet) return
+        if (bankrollState.value.balance.amount >= chips.amount) {
+            betState.value = st.copy(currentBet = st.currentBet + chips)
+            bankrollState.value = bankrollState.value.copy(balance = bankrollState.value.balance - chips)
+        }
     }
 
     override fun clearBet() {
@@ -34,6 +39,11 @@ class InMemoryBettingInteractor(
 
     override fun buyIn(amount: Chips) {
         bankrollState.value = bankrollState.value.copy(balance = bankrollState.value.balance + amount)
+    }
+
+    override fun lockBetForRound(): BetState {
+        betState.value = betState.value.copy(canPlaceBet = false)
+        return betState.value
     }
 
     override fun settle(outcome: GameOutcome): BetOutcome {
@@ -45,6 +55,7 @@ class InMemoryBettingInteractor(
             is GameOutcome.DealerWinAndBlackJack -> bet * 0.0
             is GameOutcome.PlayerWin -> bet * 2.0
             is GameOutcome.DealerWin -> bet * 0.0
+            // TODO Nasty! fix
             is GameOutcome.Playing -> throw IllegalArgumentException("Playing game outcome should not be settled.")
         }
         bankrollState.value = bankrollState.value.copy(balance = bankrollState.value.balance + addBack)
