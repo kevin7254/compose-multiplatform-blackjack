@@ -53,6 +53,7 @@ fun CardRow(hand: Hand) {
         style = MaterialTheme.typography.bodyMedium,
         color = Color.White,
     )
+    Spacer(modifier = Modifier.height(DIVIDER_HEIGHT))
     val isDealerSecondCard = hand.cards.lastOrNull()?.isFaceUp?.not()
     if (LOCAL_DEBUG && isDealerSecondCard == true) {
         Text(

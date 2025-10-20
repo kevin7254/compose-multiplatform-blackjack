@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -48,7 +47,6 @@ import com.kevin7254.blackjack.presentation.screens.CommonDefaults.LOCAL_DEBUG
 import com.kevin7254.blackjack.presentation.screens.components.GameTableDefaults.ACCENT_COLOR
 import com.kevin7254.blackjack.presentation.screens.components.GameTableDefaults.PADDING
 
-
 @Composable
 fun GameTable(
     gameState: GameState,
@@ -67,22 +65,18 @@ fun GameTable(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+            .fillMaxWidth()
+            .padding(16.dp),
     ) {
         TopHalf(
             gameState = gameState,
             roundPhase = roundPhase,
             strategyRecommendation = strategyRecommendation,
             isGameOver = isGameOver,
-            modifier = Modifier.weight(1f).fillMaxWidth()
+            modifier = Modifier.weight(0.5f).fillMaxWidth()
         )
 
-        AnimatedVisibility(
-            visible = !isPlacingBet,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
+        if (isPlacingBet.not()) {
             HorizontalDivider(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -92,19 +86,21 @@ fun GameTable(
             )
         }
 
-        AnimatedVisibility(
-            visible = isPlacingBet,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            BetPrompt(
+        if (isPlacingBet) {
+            Text(
                 modifier = Modifier
+                    .weight(0.5f)
                     .fillMaxWidth()
-                    .wrapContentHeight()
+                    .padding(PADDING),
+                text = "Place your bets.",
+                style = MaterialTheme.typography.headlineLarge,
+                color = Color.White,
+                textAlign = TextAlign.Center,
             )
         }
 
         BottomHalf(
+            isPlacingBet = isPlacingBet,
             gameState = gameState,
             roundPhase = roundPhase,
             playerChips = playerChips,
@@ -115,7 +111,7 @@ fun GameTable(
             onNewGame = onNewGame,
             onChipClicked = onChipClicked,
             onDeal = onDeal,
-            modifier = Modifier.weight(1f).fillMaxWidth()
+            modifier = Modifier.weight(0.5f).fillMaxWidth()
         )
     }
 }
@@ -145,29 +141,6 @@ private fun TopHalf(
 }
 
 @Composable
-private fun BetPrompt(
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(PADDING),
-            text = "Place your bets.",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
 private fun BottomHalf(
     gameState: GameState,
     roundPhase: RoundPhase,
@@ -180,14 +153,15 @@ private fun BottomHalf(
     onChipClicked: (Int) -> Unit,
     onDeal: () -> Unit,
     modifier: Modifier = Modifier,
+    isPlacingBet: Boolean,
 ) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom,
     ) {
-        PlayerSection(gameState = gameState)
         GameResultSection(gameResultDisplay = gameResultDisplay)
+        PlayerSection(gameState = gameState, isPlacingBet = isPlacingBet)
         PlayerButtons(
             gameState = gameState,
             roundPhase = roundPhase,
@@ -269,12 +243,11 @@ private fun DealerSection(
 @Composable
 private fun PlayerSection(
     gameState: GameState,
+    isPlacingBet: Boolean,
 ) {
-    Text(
-        "Player",
-        style = MaterialTheme.typography.titleLarge,
-        color = Color.White,
-    )
+    if (isPlacingBet) {
+        return
+    }
     CardRow(hand = gameState.playerCards)
 }
 
@@ -296,7 +269,7 @@ private fun GameResultSection(
                 text = gameResultDisplay.message,
                 color = gameResultDisplay.color,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.displayLarge,
                 modifier = Modifier.padding(PADDING)
             )
         }
