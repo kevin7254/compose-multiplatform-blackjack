@@ -31,6 +31,7 @@ fun BlackjackScreen(
     viewModel: BlackjackViewModel = koinInject()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val chipState by viewModel.chipState.collectAsState()
 
     Box(
         modifier = Modifier
@@ -63,6 +64,8 @@ fun BlackjackScreen(
                     onNewGame = viewModel::onGameReset,
                     onChipClicked = viewModel::onChipClicked,
                     onDeal = viewModel::onDeal,
+                    chipState = chipState,
+                    onBettedChipClicked = viewModel::onUndoLastChip,
                 )
             }
         }

@@ -7,6 +7,7 @@ import com.kevin7254.blackjack.domain.bank.model.Chips
 import com.kevin7254.blackjack.domain.bank.model.GameOutcome
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Interactor for handling betting related operations.
@@ -14,89 +15,124 @@ import kotlinx.coroutines.flow.StateFlow
 interface BettingInteractor {
     /**
      * The current bankroll state.
-     * @see [Bankroll]
      */
-    val bankrollState: StateFlow<Bankroll>
+    val bankroll: StateFlow<Bankroll>
 
     /**
      * The current bet state.
-     * @see [BetState]
      */
-    val betState: StateFlow<BetState>
+    val bet: StateFlow<BetState>
 
     /**
-     * Places a bet with x number of [chips].
+     * The stack of chips placed in the current betting session.
+     * Useful for undo functionality before the round starts.
+     */
+    val placedChips: StateFlow<List<Chips>>
+
+    /**
+     * Places a bet with the specified chip amount.
+     * Deducts from bankroll if sufficient funds are available.
      */
     fun placeBet(chips: Chips)
 
     /**
-     * Clears the current bet (Back to 0).
+     * Clears all placed bets and returns chips to bankroll.
      */
     fun clearBet()
 
     /**
-     * Buys in a specified number of chips.
+     * Removes the last placed chip and returns it to bankroll.
+     */
+    fun undoLastChip()
+
+    /**
+     * Adds chips to the bankroll.
      */
     fun buyIn(amount: Chips)
 
     /**
-     * Locks the bet for the current round. Player cannot place bets until the round is over.
-     * @return The current [BetState] after locking.
+     * Locks the bet for the current round.
+     * Player cannot modify bets until the round is settled.
      */
-    fun lockBetForRound(): BetState
+    fun lockBet(): BetState
 
     /**
-     * Settles the outcome of a game.
-     * @param outcome The [GameOutcome] of the game.
-     * @return The [BetOutcome] after settling.
+     * Settles the round outcome and updates bankroll accordingly.
+     * Resets bet state for the next round.
      */
     fun settle(outcome: GameOutcome): BetOutcome
 }
 
 /**
  * In-memory implementation of [BettingInteractor].
- * @param initialBankroll The initial bankroll state.
+ * Manages betting state, bankroll, and chip placement history.
  */
 class InMemoryBettingInteractor(
     initialBankroll: Bankroll = Bankroll(Chips(1000)),
 ) : BettingInteractor {
-    override val bankrollState = MutableStateFlow(initialBankroll)
-    override val betState = MutableStateFlow(BetState())
+
+    private val _bankroll = MutableStateFlow(initialBankroll)
+    override val bankroll: StateFlow<Bankroll> = _bankroll.asStateFlow()
+
+    private val _bet = MutableStateFlow(BetState())
+    override val bet: StateFlow<BetState> = _bet.asStateFlow()
+
+    private val _placedChips = MutableStateFlow<List<Chips>>(emptyList())
+    override val placedChips: StateFlow<List<Chips>> = _placedChips.asStateFlow()
 
     override fun placeBet(chips: Chips) {
-        val st = betState.value
-        if (!st.canPlaceBet) return
-        if (bankrollState.value.balance.amount >= chips.amount) {
-            betState.value = st.copy(currentBet = st.currentBet + chips)
-            bankrollState.value = bankrollState.value.copy(balance = bankrollState.value.balance - chips)
-        }
+        val currentBet = _bet.value
+        if (!currentBet.canPlaceBet) return
+
+        val currentBankroll = _bankroll.value
+        if (currentBankroll.balance.amount < chips.amount) return
+
+        _bet.value = currentBet.copy(currentBet = currentBet.currentBet + chips)
+        _bankroll.value = currentBankroll.copy(balance = currentBankroll.balance - chips)
+        _placedChips.value += chips
     }
 
     override fun clearBet() {
-        betState.value = betState.value.copy(currentBet = Chips(0))
+        val totalBet = _bet.value.currentBet
+        _bankroll.value = _bankroll.value.copy(balance = _bankroll.value.balance + totalBet)
+
+        _bet.value = _bet.value.copy(currentBet = Chips(0))
+        _placedChips.value = emptyList()
+    }
+
+    override fun undoLastChip() {
+        val lastChip = _placedChips.value.lastOrNull() ?: return
+
+        _bet.value = _bet.value.copy(currentBet = _bet.value.currentBet - lastChip)
+        _bankroll.value = _bankroll.value.copy(balance = _bankroll.value.balance + lastChip)
+        _placedChips.value = _placedChips.value.dropLast(1)
     }
 
     override fun buyIn(amount: Chips) {
-        bankrollState.value = bankrollState.value.copy(balance = bankrollState.value.balance + amount)
+        _bankroll.value = _bankroll.value.copy(balance = _bankroll.value.balance + amount)
     }
 
-    override fun lockBetForRound(): BetState {
-        betState.value = betState.value.copy(canPlaceBet = false)
-        return betState.value
+    override fun lockBet(): BetState {
+        _bet.value = _bet.value.copy(canPlaceBet = false)
+        return _bet.value
     }
 
     override fun settle(outcome: GameOutcome): BetOutcome {
-        val bet = betState.value.currentBet
-        val addBack = when (outcome) {
-            is GameOutcome.PlayerBlackJack -> bet * 2.5
-            is GameOutcome.PlayerBust -> bet * 0.0
-            is GameOutcome.Push -> bet * 1.0
-            is GameOutcome.DealerWinAndBlackJack -> bet * 0.0
-            is GameOutcome.PlayerWin -> bet * 2.0
-            is GameOutcome.DealerWin -> bet * 0.0
+        val currentBet = _bet.value.currentBet
+
+        val payout = when (outcome) {
+            is GameOutcome.PlayerBlackJack -> currentBet * 2.5
+            is GameOutcome.PlayerWin -> currentBet * 2.0
+            is GameOutcome.Push -> currentBet * 1.0
+            is GameOutcome.PlayerBust,
+            is GameOutcome.DealerWin,
+            is GameOutcome.DealerWinAndBlackJack -> Chips(0)
         }
-        bankrollState.value = bankrollState.value.copy(balance = bankrollState.value.balance + addBack)
-        betState.value = betState.value.copy(currentBet = Chips(0), canPlaceBet = true)
-        return BetOutcome(payout = addBack, newBankroll = bankrollState.value)
+
+        _bankroll.value = _bankroll.value.copy(balance = _bankroll.value.balance + payout)
+        _bet.value = BetState(currentBet = Chips(0), canPlaceBet = true)
+        _placedChips.value = emptyList()
+
+        return BetOutcome(payout = payout, newBankroll = _bankroll.value)
     }
 }

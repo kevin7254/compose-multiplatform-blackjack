@@ -44,6 +44,7 @@ class BlackjackViewModel(
 
     private val _uiState = MutableStateFlow<BlackjackUiState>(BlackjackUiState.Loading)
     val uiState: StateFlow<BlackjackUiState> = _uiState.asStateFlow()
+    val chipState = bettingInteractor.placedChips
 
     private var gameFlowJob: Job? = null
 
@@ -55,7 +56,7 @@ class BlackjackViewModel(
      * Called when the player wants to start a new game.
      */
     fun onDeal() {
-        bettingInteractor.lockBetForRound()
+        bettingInteractor.lockBet()
         _uiState.value = BlackjackUiState.Loading
         executeFlow { gameAnimationUseCase.newGameWithAnimation() }
     }
@@ -88,6 +89,8 @@ class BlackjackViewModel(
     fun onChipClicked(amount: Int) = bettingInteractor.placeBet(Chips(amount))
 
     fun onClearBet() = bettingInteractor.clearBet()
+
+    fun onUndoLastChip() = bettingInteractor.undoLastChip()
 
     /**
      * A higher-order function to handle any action that requires a valid, non-animating
@@ -135,8 +138,8 @@ class BlackjackViewModel(
 
             combine(
                 gameFlow,
-                bettingInteractor.betState,
-                bettingInteractor.bankrollState,
+                bettingInteractor.bet,
+                bettingInteractor.bankroll,
             ) { (gs, rec), bs, br -> Quad(gs, rec, bs, br) }
                 .onCompletion {
                     if (animate) {

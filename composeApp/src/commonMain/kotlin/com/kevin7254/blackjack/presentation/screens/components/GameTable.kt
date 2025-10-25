@@ -25,7 +25,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.kevin7254.blackjack.domain.bank.model.Bankroll
+import com.kevin7254.blackjack.domain.bank.model.Chips
 import com.kevin7254.blackjack.domain.model.GameResultDisplay
 import com.kevin7254.blackjack.domain.model.GameState
 import com.kevin7254.blackjack.domain.model.RoundPhase
@@ -58,6 +58,8 @@ fun GameTable(
     onNewGame: () -> Unit,
     onChipClicked: (Int) -> Unit,
     onDeal: () -> Unit,
+    chipState: List<Chips>,
+    onBettedChipClicked: () -> Unit,
 ) {
     val gameResultDisplay = toDisplay(gameState.status)
     val isGameOver = gameResultDisplay.isGameOver
@@ -93,10 +95,22 @@ fun GameTable(
                     .fillMaxWidth()
                     .padding(PADDING),
                 text = "Place your bets.",
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.displayLarge,
                 color = Color.White,
                 textAlign = TextAlign.Center,
             )
+            if (chipState.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = PADDING)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    ChipImage(chip = chipState.last().amount, onChipClicked = {
+                        onBettedChipClicked.invoke()
+                    })
+                }
+            }
         }
 
         BottomHalf(
@@ -411,17 +425,14 @@ private fun ChipsBox(
         modifier = modifier
             .padding(vertical = PADDING)
             .wrapContentSize(),
-
         contentAlignment = Alignment.Center,
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(PADDING),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             chips.forEach { chip ->
-                IconButton(onClick = { onChipClicked(chip) }) {
-                    ChipImage(chip = chip)
-                }
+                ChipImage(chip = chip, onChipClicked = { onChipClicked.invoke(chip) })
             }
             // TODO: Jumps if number changes
             Text(
